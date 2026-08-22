@@ -19,11 +19,14 @@ android {
             // Chaquopy braucht mind. eine ABI, für den Anfang reicht arm64
             abiFilters += listOf("arm64-v8a")
         }
-        python {
-            pip {
-                // Backend-Module, laufen als reines Python unter Chaquopy
-                install("yt-dlp")
-                install("scrapling")
+        chaquopy {
+            defaultConfig {
+                version = "3.10"
+                pip {
+                    // Backend-Module, laufen als reines Python unter Chaquopy
+                    install("yt-dlp")
+                    install("scrapling")
+                }
             }
         }
     }
