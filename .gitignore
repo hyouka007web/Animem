@@ -1,0 +1,32 @@
+.gradle/
+build/
+
+# Local Android Studio and IntelliJ files
+.idea/
+*.iml
+
+# Android build outputs
+app/build/
+
+# Local signing configuration
+local.properties
+
+# Generated APKs and bundles
+*.apk
+*.aab
+.gradle/
+build/
+
+# Local Android Studio and IntelliJ files
+.idea/
+*.iml
+
+# Android build outputs
+app/build/
+
+# Local signing configuration
+local.properties
+
+# Generated APKs and bundles
+*.apk
+*.aab
