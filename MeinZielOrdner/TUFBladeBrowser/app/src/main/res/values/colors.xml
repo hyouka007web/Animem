@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Direkt aus design.md Abschnitt 1 übernommen — jede Änderung hier zuerst in design.md pflegen -->
+<resources>
+    <color name="bg_base">#1E1E1E</color>
+    <color name="bg_surface">#2E3033</color>
+    <color name="bg_surface_raised">#3A3D40</color>
+
+    <color name="accent_primary">#FFB800</color>
+    <color name="accent_success">#00FF66</color>
+    <color name="accent_danger">#FF3B3B</color>
+
+    <color name="text_primary">#FFFFFF</color>
+    <color name="text_muted">#A0A0A0</color>
+
+    <color name="border_hairline">#3F4245</color>
+</resources>

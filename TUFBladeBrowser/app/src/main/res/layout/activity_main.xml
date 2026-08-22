@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Struktur 1:1 aus design.md Abschnitt 5 -->
+<androidx.constraintlayout.widget.ConstraintLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:background="@color/bg_base">
+
+    <!-- Top Bar: URL-Feld · Tabs · Menü — 56dp, bg-surface -->
+    <LinearLayout
+        android:id="@+id/topBar"
+        android:layout_width="0dp"
+        android:layout_height="@dimen/topbar_height"
+        android:background="@color/bg_surface"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:paddingHorizontal="@dimen/space_8"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <EditText
+            android:id="@+id/urlField"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:fontFamily="monospace"
+            android:textSize="@dimen/type_mono"
+            android:textColor="@color/text_primary"
+            android:textColorHint="@color/text_muted"
+            android:hint="URL oder Suche eingeben"
+            android:background="@android:color/transparent"
+            android:imeOptions="actionGo"
+            android:inputType="textUri"
+            android:singleLine="true" />
+
+        <!-- Redirect-Shield / Adblock Status-Badge, siehe RedirectShield.kt -->
+        <TextView
+            android:id="@+id/shieldBadge"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginEnd="@dimen/space_8"
+            android:textColor="@color/accent_success"
+            android:textSize="@dimen/type_caption"
+            android:text="0" />
+
+        <ImageButton
+            android:id="@+id/menuButton"
+            android:layout_width="@dimen/list_row_height"
+            android:layout_height="@dimen/list_row_height"
+            android:background="@android:color/transparent"
+            android:contentDescription="Hauptmenü"
+            android:src="@android:drawable/ic_menu_more" />
+    </LinearLayout>
+
+    <!-- Sidebar: eingeklappt = space_4 breiter Streifen mit accent_primary Akzentlinie -->
+    <View
+        android:id="@+id/sidebar"
+        android:layout_width="@dimen/sidebar_collapsed_width"
+        android:layout_height="0dp"
+        android:background="@color/accent_primary"
+        app:layout_constraintTop_toBottomOf="@id/topBar"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <!-- Web-Content: hier wird die GeckoView zur Laufzeit eingehängt (siehe MainActivity.kt) -->
+    <FrameLayout
+        android:id="@+id/contentContainer"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@color/bg_base"
+        app:layout_constraintTop_toBottomOf="@id/topBar"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@id/sidebar"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <!-- Floating Sniffer-Panel — auto-height, überlagert unten, standardmäßig unsichtbar -->
+    <LinearLayout
+        android:id="@+id/snifferPanel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@color/bg_surface"
+        android:padding="@dimen/panel_padding"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@id/sidebar"
+        app:layout_constraintEnd_toEndOf="parent" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

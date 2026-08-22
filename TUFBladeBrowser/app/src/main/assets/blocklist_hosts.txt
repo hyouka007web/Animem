@@ -1,0 +1,23 @@
+! TUF-Blade Browser — Beispiel-Sperrliste (Adblock-Plus-Syntax)
+! Nur ein Startpunkt zum Testen. Für Produktivbetrieb echte EasyList/
+! EasyPrivacy-Listen von https://easylist.to laden und periodisch aktualisieren.
+||doubleclick.net^
+||googlesyndication.com^
+||googleadservices.com^
+||adservice.google.com^
+||adnxs.com^
+||scorecardresearch.com^
+||taboola.com^
+||outbrain.com^
+||criteo.com^
+||moatads.com^
+||adform.net^
+||pubmatic.com^
+||rubiconproject.com^
+||media.net^
+!
+! Grobe Substring-Muster gegen Tracking-Pixel/Ad-Pfade
+/pagead/
+/adserver/
+/ads/tracking
+/analytics/collect
