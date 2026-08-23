@@ -9,7 +9,7 @@
     <application
         android:name=".TufBladeApp"
         android:allowBackup="false"
-        android:icon="@mipmap/ic_launcher"
+        android:icon="@drawable/ic_launcher"
         android:label="TUF-Blade Browser"
         android:theme="@style/Theme.TUFBlade"
         android:usesCleartextTraffic="false">
