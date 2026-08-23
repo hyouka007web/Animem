@@ -50,7 +50,7 @@ android {
 
 dependencies {
     // GeckoView — Rendering-Engine, ersetzt QtWebEngine für die Android-Zielplattform
-    implementation("org.mozilla.geckoview:geckoview:130.0.20240815120555")
+    implementation("org.mozilla.geckoview:geckoview:154.0.20260814215756")
 
     implementation("androidx.core:core-ktx:1.13.1")
     implementation("androidx.appcompat:appcompat:1.7.0")
