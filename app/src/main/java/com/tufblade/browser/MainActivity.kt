@@ -4,7 +4,9 @@ import android.os.Bundle
 import android.graphics.Color
 import android.graphics.Typeface
 import android.view.KeyEvent
+import android.view.ViewGroup
 import android.view.inputmethod.EditorInfo
+import android.widget.FrameLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
@@ -64,14 +66,14 @@ class MainActivity : AppCompatActivity() {
             setPadding(24, 24, 24, 24)
         }
         val scrollView = ScrollView(this).apply {
-            addView(textView, ScrollView.LayoutParams(
-                ScrollView.LayoutParams.MATCH_PARENT,
-                ScrollView.LayoutParams.WRAP_CONTENT
+            addView(textView, ViewGroup.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.WRAP_CONTENT
             ))
         }
-        binding.contentContainer.addView(scrollView, android.widget.FrameLayout.LayoutParams(
-            android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
-            android.widget.FrameLayout.LayoutParams.MATCH_PARENT
+        binding.contentContainer.addView(scrollView, FrameLayout.LayoutParams(
+            FrameLayout.LayoutParams.MATCH_PARENT,
+            FrameLayout.LayoutParams.MATCH_PARENT
         ))
     }
 
