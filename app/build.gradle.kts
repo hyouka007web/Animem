@@ -4,8 +4,11 @@ plugins {
 
 android {
     namespace = "com.tufblade.browser"
-    compileSdk = 37
-    compileSdkExtension = 1
+    compileSdk {
+        version = release(37) {
+            minorApiLevel = 1
+        }
+    }
 
     defaultConfig {
         applicationId = "com.tufblade.browser"
