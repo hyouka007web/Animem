@@ -16,4 +16,10 @@
     <style name="FocusRing">
         <item name="android:outlineAmbientShadowColor">@android:color/transparent</item>
     </style>
+
+    <!-- Anflug-Animation: reiner bg_base Hintergrund, kein System-ActionBar/StatusBar-Flackern -->
+    <style name="Theme.TUFBlade.Splash" parent="Theme.TUFBlade">
+        <item name="android:windowBackground">@color/bg_base</item>
+        <item name="android:windowFullscreen">false</item>
+    </style>
 </resources>

@@ -1,4 +1,4 @@
-// TUF-Blade Browser — root build file
+// NEXUS Browser — root build file
 plugins {
     id("com.android.application") version "9.3.1" apply false
 }

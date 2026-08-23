@@ -26,8 +26,12 @@ class AdBlockEngine private constructor(
     var blockedCount: Int = 0
         private set
 
+    /** Von SettingsActivity über NexusSettings gesteuert - Adblocker komplett aus-/einschaltbar. */
+    var enabled: Boolean = true
+
     /** true = Request wird geblockt. Ruft man aus NavigationDelegate.onLoadRequest auf. */
     fun shouldBlock(uri: Uri): Boolean {
+        if (!enabled) return false
         val host = uri.host ?: return false
 
         // 1) exakter oder Subdomain-Treffer gegen die Host-Liste

@@ -15,5 +15,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "TUF-Blade Browser"
+rootProject.name = "NEXUS"
 include(":app")

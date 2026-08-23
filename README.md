@@ -1,45 +1,69 @@
-# TUF-Blade Browser — Starter-Projekt
+# NEXUS Browser
 
-Android-Studio-Projekt (Kotlin + GeckoView), aufgebaut exakt nach `design.md`
-(Farben/Typografie/Spacing/Layout 1:1 als Ressourcen übernommen).
+Android-Browser (Kotlin + GeckoView), aufgebaut nach `design.md`.
 
-## Was drin ist (funktionsfähig)
+## Was in diesem Update neu ist
 
-- **GeckoView-Integration** (`TufBladeApp.kt`, `MainActivity.kt`) — Basis-Browser mit URL-Feld, lädt Seiten.
-- **AdBlocker, 2 Ebenen** (wie klassische Adblock-Browser):
-  1. Geckos natives `ContentBlocking` (Tracking/Ads/Fingerprinting/Cryptomining, Resource-Ebene) — `TufBladeApp.kt`
-  2. Eigene Host-/Pattern-Sperrliste (EasyList-Syntax, Beispiel-Liste unter `assets/blocklist_hosts.txt`) — `AdBlockEngine.kt`
-- **Redirect-Shield** (`RedirectShield.kt`): blockt Popups (`window.open`) und Domain-fremde Weiterleitungen ohne Nutzeraktion, mit "trotzdem öffnen"-Option statt stillem Verschwinden.
-- **Design-Tokens** (`colors.xml`, `dimens.xml`, `themes.xml`) 1:1 aus `design.md`.
-- **Layout-Grundgerüst**: Top Bar + Sidebar-Streifen + Content-Container + Sniffer-Panel-Platzhalter, exakt die Struktur aus design.md Abschnitt 5.
-- **Chaquopy** ist im Gradle-Setup eingebunden, mit `yt-dlp` und `scrapling` als Pip-Dependencies vorkonfiguriert (siehe `app/build.gradle.kts`) — noch nicht an die UI angebunden.
+- **Absturz-Fix (wahrscheinliche Ursache gefunden und behoben)**: Der
+  manuelle `<service android:name="org.mozilla.geckoview.GeckoViewChildService$Content">`-
+  Eintrag im AndroidManifest.xml wurde entfernt. Diese Klasse existiert so
+  nicht — GeckoView deklariert seine eigenen Multiprozess-Services bereits
+  selbst über sein AAR-Manifest (automatisches Merging). Der doppelte/falsche
+  Eintrag hat vermutlich zu einer ClassNotFoundException geführt, sobald
+  Gecko beim ersten Seitenaufruf versucht hat, den Content-Prozess zu starten
+  — das erklärt den Sofort-Absturz direkt nach dem leeren weißen Bildschirm.
+- **Rebranding zu NEXUS**: App-Name, Adaptive-Icon aus dem bereitgestellten
+  Logo generiert (`res/mipmap-anydpi-v26/ic_launcher.xml` + `drawable-xxxhdpi`).
+- **Anflug-Animation**: `SplashActivity` mit Scale+Fade-Overshoot-Animation
+  beim App-Start (~900ms), danach Fade-Übergang zu `MainActivity`.
+- **Ausklappbare Sidebar**: Tap auf den Farbstreifen fährt sie aus/ein
+  (180ms, design.md-Motion-Spec). Web-Apps werden jetzt **persistiert**
+  (SharedPreferences über `NexusSettings`), per "+"-Dialog anpinnbar und
+  per Long-Press wieder entfernbar.
+- **Tab-Leiste**: mehrere GeckoSession-Instanzen gleichzeitig, horizontal
+  scrollbarer Tab-Strip, Schließen einzelner Tabs, aktiver Tab farblich
+  hervorgehoben.
+- **Klick-Ripple-Animationen**: alle Buttons/Icons/Kacheln nutzen
+  `ripple_accent` bzw. `ripple_accent_circle` in `accent_primary`.
+- **Mediathek**: Grid heruntergeladener Videos mit **echten Thumbnails**
+  (per `MediaMetadataRetriever` aus dem ersten Frame extrahiert), Abspielen
+  per Tap (Systemplayer via FileProvider), Löschen per Long-Press.
+- **Video-Download (nativ, kein Python)**: `MediaLinkFinder` scannt das HTML
+  der aktuellen Seite nach direkten `.mp4`/`.webm`/`.m3u8`-Links,
+  `VideoDownloader` lädt den ersten Treffer in den privaten App-Speicher
+  (kein Berechtigungs-Dialog nötig) und trägt ihn in die Mediathek ein.
+- **Einstellungs-Screen**: Suchmaschine wählbar (DuckDuckGo/Google/Bing),
+  Adblocker komplett ein-/ausschaltbar — beides sofort wirksam, lokal
+  gespeichert, kein Server.
 
-## Was als TODO markiert / noch nicht gebaut ist
+## Bewusste Design-Entscheidung: kein Chaquopy/yt-dlp (noch)
 
-Ehrlich gesagt: ein "kompletter Browser" mit allen Features aus dem
-Gesamtkonzept ist in einem Rutsch nicht seriös baubar — hier ist ein
-funktionierendes Fundament mit den zwei explizit gewünschten Kern-Features
-(Adblock + Redirect-Shield), auf dem wir jetzt modulweise draufbauen:
+Chaquopy (Python-Bridge für yt-dlp) ist laut offizieller Doku nur bis
+Android-Gradle-Plugin **9.2.x** getestet — dieses Projekt nutzt aber bereits
+**9.3.1**. Um nicht wieder in eine Build-Fehler-Schleife zu laufen, lädt
+NEXUS Videos vorerst nativ herunter.
 
-- [ ] Sidebar ausklappbar mit Web-App-Icons (aktuell nur der Farbstreifen)
-- [ ] Tab-Verwaltung (Multi-Tab, aktuell nur eine Session)
-- [ ] Scrapling Split View (Panel-UI + Anbindung ans Chaquopy-Python-Backend)
-- [ ] Media-Sniffer + Mediathek
-- [ ] Chaquopy-Python-Aufrufe aus Kotlin (`Python.getInstance().getModule(...)`) für yt-dlp/Scrapling
-- [ ] Orbot-Anbindung für Tor-Routing im Inkognito-Modus
-- [ ] Vollständige EasyList/EasyPrivacy statt der Beispiel-Sperrliste
-- [ ] Custom-CSS-Injektor, User-Agent-Spoofer-UI, Einstellungs-Dashboard
+**Einschränkung, ehrlich gesagt**: Das funktioniert nur bei Seiten mit
+direkt eingebettetem Videolink im HTML (z. B. `<video src="...mp4">`).
+Seiten mit eigener Verschlüsselung/Extraktion (YouTube, viele
+Streaming-Portale) werden NICHT erfasst — dafür bräuchte es echtes
+yt-dlp. Sobald die App stabil läuft, können wir Chaquopy als optionales
+Zusatzmodul nachrüsten und gezielt testen.
 
-## Setup
+## Noch offen (TODOs)
 
-1. Android Studio (aktuelle Version) öffnen → "Open" → diesen Ordner wählen.
-2. Gradle-Sync abwarten (lädt GeckoView + Chaquopy-Dependencies).
-3. Auf echtem Gerät oder Emulator (API 26+) ausführen.
-4. Falls die GeckoView-Version-Nummer in `app/build.gradle.kts` veraltet ist:
-   aktuelle Version unter https://maven.mozilla.org/maven2/org/mozilla/geckoview/ nachsehen.
+- [ ] Web-App-Icons in der Sidebar durch echte Bild-Icons statt Text-Kürzel ersetzen
+- [ ] Scrapling Split View
+- [ ] Erweiterte EasyList/EasyPrivacy statt der Beispiel-Sperrliste
+- [ ] Optional: Chaquopy + yt-dlp nachrüsten für Seiten ohne direkten Videolink
+- [ ] Tabs über App-Neustarts hinweg persistieren
+- [ ] Zero-Knowledge-Sync (bewusst ausgeklammert, braucht Server)
 
-## Nächster Schritt
+## Setup — ohne Android Studio (GitHub Actions baut die APK)
 
-Sag mir, welches TODO-Modul als Nächstes drankommt (z. B. Sidebar mit
-Web-Apps, oder direkt die Scrapling/Chaquopy-Anbindung) — dann bauen wir
-darauf weiter, immer gegen `design.md` abgeglichen.
+1. Diesen kompletten Ordnerinhalt in dein bestehendes GitHub-Repo hochladen
+   (überschreibt die alten Dateien) — am einfachsten über den Codespace-
+   Terminal: Zip in den Codespace hochladen, dort entpacken, dann
+   `git add -A && git commit -m "NEXUS: Crash-Fix, Rebranding, Tabs, Mediathek" && git push`
+2. Im Actions-Tab läuft der Build automatisch.
+3. APK unter Actions → Build Debug APK → Artifacts herunterladen und installieren.

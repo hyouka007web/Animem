@@ -13,4 +13,7 @@
     <color name="text_muted">#A0A0A0</color>
 
     <color name="border_hairline">#3F4245</color>
+
+    <color name="ic_launcher_background">#1E1E1E</color>
+    <color name="ripple_accent">#33FFB800</color>
 </resources>

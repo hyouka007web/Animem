@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- Struktur 1:1 aus design.md Abschnitt 5 -->
+<!-- Struktur aus design.md Abschnitt 5, erweitert um Tab-Leiste + ausklappbare Sidebar -->
 <androidx.constraintlayout.widget.ConstraintLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
@@ -7,7 +7,6 @@
     android:layout_height="match_parent"
     android:background="@color/bg_base">
 
-    <!-- Top Bar: URL-Feld · Tabs · Menü — 56dp, bg-surface -->
     <LinearLayout
         android:id="@+id/topBar"
         android:layout_width="0dp"
@@ -35,7 +34,6 @@
             android:inputType="textUri"
             android:singleLine="true" />
 
-        <!-- Redirect-Shield / Adblock Status-Badge, siehe RedirectShield.kt -->
         <TextView
             android:id="@+id/shieldBadge"
             android:layout_width="wrap_content"
@@ -49,33 +47,62 @@
             android:id="@+id/menuButton"
             android:layout_width="@dimen/list_row_height"
             android:layout_height="@dimen/list_row_height"
-            android:background="@android:color/transparent"
+            android:background="@drawable/ripple_accent_circle"
             android:contentDescription="Hauptmenü"
-            android:src="@android:drawable/ic_menu_more" />
+            android:src="@android:drawable/ic_menu_more"
+            app:tint="@color/text_primary" />
     </LinearLayout>
 
-    <!-- Sidebar: eingeklappt = space_4 breiter Streifen mit accent_primary Akzentlinie -->
-    <View
+    <HorizontalScrollView
+        android:id="@+id/tabStripScroll"
+        android:layout_width="0dp"
+        android:layout_height="40dp"
+        android:background="@color/bg_surface"
+        android:scrollbars="none"
+        app:layout_constraintTop_toBottomOf="@id/topBar"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:id="@+id/tabStrip"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:paddingHorizontal="@dimen/space_8"
+            android:gravity="center_vertical" />
+    </HorizontalScrollView>
+
+    <LinearLayout
         android:id="@+id/sidebar"
         android:layout_width="@dimen/sidebar_collapsed_width"
         android:layout_height="0dp"
-        android:background="@color/accent_primary"
-        app:layout_constraintTop_toBottomOf="@id/topBar"
+        android:orientation="vertical"
+        android:background="@color/bg_surface"
+        android:clickable="true"
+        android:focusable="true"
+        app:layout_constraintTop_toBottomOf="@id/tabStripScroll"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent" />
 
-    <!-- Web-Content: hier wird die GeckoView zur Laufzeit eingehängt (siehe MainActivity.kt) -->
+    <View
+        android:id="@+id/sidebarAccentLine"
+        android:layout_width="@dimen/sidebar_collapsed_width"
+        android:layout_height="0dp"
+        android:background="@color/accent_primary"
+        app:layout_constraintTop_toBottomOf="@id/tabStripScroll"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
     <FrameLayout
         android:id="@+id/contentContainer"
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:background="@color/bg_base"
-        app:layout_constraintTop_toBottomOf="@id/topBar"
+        app:layout_constraintTop_toBottomOf="@id/tabStripScroll"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toEndOf="@id/sidebar"
         app:layout_constraintEnd_toEndOf="parent" />
 
-    <!-- Floating Sniffer-Panel — auto-height, überlagert unten, standardmäßig unsichtbar -->
     <LinearLayout
         android:id="@+id/snifferPanel"
         android:layout_width="0dp"

@@ -1,6 +1,7 @@
-# TUF-Blade Browser — Design System
+# NEXUS Browser — Design System
 
 Referenz-Dokument für UI/UX. Basis: ASUS-TUF-Gaming-Ästhetik + Dev-Tool-Funktionalität, Android-Zielplattform (Kotlin + GeckoView), Dark-Mode-only.
+Logo: stilisierter Vogel mit Schaltkreis-Motiv, Gunmetal/Schwarz mit Gold-Akzenten (`accent_primary`) — passt direkt in die bestehende Farbpalette.
 
 ---
 
