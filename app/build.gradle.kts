@@ -6,7 +6,7 @@ plugins {
 
 android {
     namespace = "com.tufblade.browser"
-    compileSdk = 34
+    compileSdk = 37
 
     defaultConfig {
         applicationId = "com.tufblade.browser"
