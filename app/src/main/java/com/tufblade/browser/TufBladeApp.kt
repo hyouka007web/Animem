@@ -1,9 +1,12 @@
 package com.tufblade.browser
 
 import android.app.Application
+import android.util.Log
 import org.mozilla.geckoview.ContentBlocking
 import org.mozilla.geckoview.GeckoRuntime
 import org.mozilla.geckoview.GeckoRuntimeSettings
+
+const val LAST_CRASH_FILE_NAME = "last_crash.txt"
 
 /**
  * Eine GeckoRuntime pro App-Prozess (Mozilla-Vorgabe, mehrere Instanzen sind nicht erlaubt).
@@ -22,6 +25,15 @@ class TufBladeApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
+
+        val previousHandler = Thread.getDefaultUncaughtExceptionHandler()
+        Thread.setDefaultUncaughtExceptionHandler { thread, throwable ->
+            try {
+                filesDir.resolve(LAST_CRASH_FILE_NAME).writeText(Log.getStackTraceString(throwable))
+            } finally {
+                previousHandler?.uncaughtException(thread, throwable)
+            }
+        }
 
         val contentBlocking = ContentBlocking.Settings.Builder()
             .antiTracking(ContentBlocking.AntiTracking.STRICT)

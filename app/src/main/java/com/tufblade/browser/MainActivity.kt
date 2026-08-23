@@ -1,8 +1,12 @@
 package com.tufblade.browser
 
 import android.os.Bundle
+import android.graphics.Color
+import android.graphics.Typeface
 import android.view.KeyEvent
 import android.view.inputmethod.EditorInfo
+import android.widget.ScrollView
+import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import com.google.android.material.snackbar.Snackbar
 import com.tufblade.browser.adblock.AdBlockEngine
@@ -27,13 +31,48 @@ class MainActivity : AppCompatActivity() {
         binding = ActivityMainBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
+        val previousCrash = filesDir.resolve(LAST_CRASH_FILE_NAME)
+        if (previousCrash.exists()) {
+            showStackTrace(previousCrash.readText())
+            previousCrash.delete()
+            return
+        }
+
         adBlockEngine = AdBlockEngine.loadFromAssets(this)
         redirectShield = RedirectShield(adBlockEngine) { uri, reason ->
             runOnUiThread { showBlockedToast(uri, reason) }
         }
 
-        setupGeckoSession()
-        setupTopBar()
+        try {
+            setupGeckoSession()
+            setupTopBar()
+        } catch (e: Exception) {
+            showStackTrace(android.util.Log.getStackTraceString(e))
+        }
+    }
+
+    private fun showStackTrace(stackTrace: String) {
+        binding.contentContainer.removeAllViews()
+        binding.contentContainer.setBackgroundColor(getColor(com.tufblade.browser.R.color.bg_base))
+
+        val textView = TextView(this).apply {
+            setTextColor(Color.WHITE)
+            setBackgroundColor(getColor(com.tufblade.browser.R.color.bg_base))
+            typeface = Typeface.MONOSPACE
+            text = stackTrace
+            setTextIsSelectable(true)
+            setPadding(24, 24, 24, 24)
+        }
+        val scrollView = ScrollView(this).apply {
+            addView(textView, ScrollView.LayoutParams(
+                ScrollView.LayoutParams.MATCH_PARENT,
+                ScrollView.LayoutParams.WRAP_CONTENT
+            ))
+        }
+        binding.contentContainer.addView(scrollView, android.widget.FrameLayout.LayoutParams(
+            android.widget.FrameLayout.LayoutParams.MATCH_PARENT,
+            android.widget.FrameLayout.LayoutParams.MATCH_PARENT
+        ))
     }
 
     private fun setupGeckoSession() {
@@ -111,7 +150,9 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        geckoSession.close()
+        if (::geckoSession.isInitialized) {
+            geckoSession.close()
+        }
         super.onDestroy()
     }
 }
