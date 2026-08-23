@@ -24,14 +24,9 @@ class TufBladeApp : Application() {
         super.onCreate()
 
         val contentBlocking = ContentBlocking.Settings.Builder()
-            .categories(
-                ContentBlocking.AntiTracking.STRICT or
-                ContentBlocking.SafeBrowsing.ALL
-            )
+            .antiTracking(ContentBlocking.AntiTracking.STRICT)
+            .safeBrowsing(ContentBlocking.SafeBrowsing.DEFAULT)
             .cookieBehavior(ContentBlocking.CookieBehavior.ACCEPT_NON_TRACKERS)
-            // Fingerprinting- & Cryptomining-Schutz, siehe frühere Analyse zu "Fingerprint-Noise"
-            .antiFingerprinting(true)
-            .cryptoMining(true)
             .build()
 
         val runtimeSettings = GeckoRuntimeSettings.Builder()
