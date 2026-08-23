@@ -1,6 +1,5 @@
 plugins {
     id("com.android.application")
-    id("com.chaquo.python") // Python-Backend für yt-dlp / Scrapling — kostenlos seit Chaquopy 12.0.1
 }
 
 android {
@@ -14,20 +13,6 @@ android {
         versionCode = 1
         versionName = "0.1.0-alpha"
 
-        ndk {
-            // Chaquopy braucht mind. eine ABI, für den Anfang reicht arm64
-            abiFilters += listOf("arm64-v8a")
-        }
-        chaquopy {
-            defaultConfig {
-                version = "3.10"
-                pip {
-                    // Backend-Module, laufen als reines Python unter Chaquopy
-                    install("yt-dlp")
-                    install("scrapling")
-                }
-            }
-        }
     }
 
     buildTypes {
