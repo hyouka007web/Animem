@@ -6,6 +6,7 @@
     android:orientation="horizontal"
     android:gravity="center_vertical"
     android:background="@drawable/ripple_accent"
+    android:minWidth="96dp"
     android:paddingHorizontal="@dimen/space_12"
     android:clickable="true"
     android:focusable="true">
