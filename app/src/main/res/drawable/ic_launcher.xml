@@ -13,19 +13,4 @@
     <path
         android:fillColor="@color/accent_success"
         android:pathData="M21,29 L15,23 L18,20 L21,23 L30,14 L33,17 Z" />
-</vector><?xml version="1.0" encoding="utf-8"?>
-<vector xmlns:android="http://schemas.android.com/apk/res/android"
-    android:width="48dp"
-    android:height="48dp"
-    android:viewportWidth="48"
-    android:viewportHeight="48">
-    <path
-        android:fillColor="@color/accent_primary"
-        android:pathData="M24,3 L42,10 L42,22 C42,33 34,41 24,46 C14,41 6,33 6,22 L6,10 Z" />
-    <path
-        android:fillColor="@color/bg_base"
-        android:pathData="M24,9 L36,14 L36,22 C36,29 31,35 24,39 C17,35 12,29 12,22 L12,14 Z" />
-    <path
-        android:fillColor="@color/accent_success"
-        android:pathData="M21,29 L15,23 L18,20 L21,23 L30,14 L33,17 Z" />
 </vector>
