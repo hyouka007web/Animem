@@ -1,0 +1,145 @@
+package com.tufblade.browser.adblock
+
+import android.net.Uri
+import android.util.Log
+import org.mozilla.geckoview.AllowOrDeny
+import org.mozilla.geckoview.GeckoResult
+import org.mozilla.geckoview.GeckoSession
+import org.mozilla.geckoview.WebRequestError
+
+/**
+ * Weiterleitschutz, wie ihn ältere Adblock-Browser (Brave classic, uBO+
+ * Popup-Blocker-Kombo) hatten:
+ *
+ * 1) Popups (window.open) ohne User-Geste werden abgefangen (onNewSession)
+ * 2) Navigationen ohne User-Geste, die kurz nach dem Laden der Seite auf
+ *    eine ANDERE Domain zeigen (klassisches "Klick-auf-Download-Button
+ *    öffnet 3 Phishing-Tabs"-Muster), werden geblockt statt direkt geladen.
+ *
+ * Der Nutzer bekommt die geblockte URL für ein paar Sekunden als "trotzdem
+ * öffnen"-Option (siehe [lastBlocked]) statt dass sie kommentarlos verschwindet.
+ */
+class RedirectShield(
+    private val adBlockEngine: AdBlockEngine,
+    private val onBlocked: (uri: String, reason: BlockReason) -> Unit,
+    private val onTitleUpdate: (session: GeckoSession, title: String?) -> Unit = { _, _ -> },
+    private val onLoadingStateChange: (loading: Boolean) -> Unit = { _ -> },
+    /** Vom Host (MainActivity) gestellt: öffnet uri als echten neuen Tab und
+     *  gibt dessen frisch erzeugte GeckoSession zurück, damit GeckoView den
+     *  Popup-Inhalt dort statt in einem separaten OS-Fenster lädt. */
+    private val onAllowedPopup: (uri: String) -> GeckoSession? = { null }
+) : GeckoSession.NavigationDelegate, GeckoSession.ContentDelegate, GeckoSession.ProgressDelegate {
+
+    enum class BlockReason { AD_HOST, POPUP_NO_GESTURE, REDIRECT_NO_GESTURE }
+
+    var lastBlocked: String? = null
+        private set
+
+    private var currentDomain: String? = null
+    private var lastLoadTimestamp: Long = 0L
+    private var lastUserGestureTimestamp: Long = 0L
+
+    // Kurzes Zeitfenster nach dem Laden, in dem eine domain-fremde,
+    // geste-lose Navigation als "unerwünschte Weiterleitung" gilt.
+    private val redirectSuspicionWindowMs = 4000L
+
+    // Kurzes Zeitfenster, in dem ein window.open() noch als Folge der
+    // zuletzt gesehenen Nutzer-Geste gilt (echte Login-/Zahlungs-Popups
+    // öffnen synchron innerhalb weniger ms nach dem Klick).
+    private val gestureCarryoverWindowMs = 1500L
+
+    override fun onLocationChange(
+        session: GeckoSession,
+        url: String?,
+        perms: MutableList<GeckoSession.PermissionDelegate.ContentPermission>,
+        hasUserGesture: Boolean
+    ) {
+        url?.let {
+            currentDomain = Uri.parse(it).host
+            lastLoadTimestamp = System.currentTimeMillis()
+        }
+    }
+
+    override fun onPageStart(session: GeckoSession, url: String) {
+        onLoadingStateChange(true)
+    }
+
+    override fun onPageStop(session: GeckoSession, success: Boolean) {
+        onLoadingStateChange(false)
+    }
+
+    override fun onLoadRequest(
+        session: GeckoSession,
+        request: GeckoSession.NavigationDelegate.LoadRequest
+    ): GeckoResult<AllowOrDeny> {
+        val uri = Uri.parse(request.uri)
+
+        if (request.hasUserGesture) {
+            lastUserGestureTimestamp = System.currentTimeMillis()
+        }
+
+        // Ebene 2 Adblock: Host-/Pattern-Sperrliste
+        if (adBlockEngine.shouldBlock(uri)) {
+            markBlocked(request.uri, BlockReason.AD_HOST)
+            return GeckoResult.deny()
+        }
+
+        // Redirect-Verdacht: keine User-Geste, andere Domain, kurz nach Laden
+        val timeSinceLoad = System.currentTimeMillis() - lastLoadTimestamp
+        val isCrossDomain = currentDomain != null && uri.host != null && uri.host != currentDomain
+        if (!request.hasUserGesture && isCrossDomain && timeSinceLoad < redirectSuspicionWindowMs) {
+            Log.i("RedirectShield", "Blockiere Weiterleitung ohne Nutzeraktion: ${request.uri}")
+            markBlocked(request.uri, BlockReason.REDIRECT_NO_GESTURE)
+            return GeckoResult.deny()
+        }
+
+        return GeckoResult.allow()
+    }
+
+    /**
+     * FIX: vorher wurde JEDES window.open() blockiert, unabhängig von der
+     * Nutzer-Geste - das widersprach dem eigenen Klassenkommentar und hätte
+     * z.B. jedes "Mit Google anmelden"-Popup mitblockiert. onNewSession
+     * selbst bekommt keine hasUserGesture-Info von GeckoView, deshalb wird
+     * hier der Zeitstempel der letzten Geste aus onLoadRequest verwendet.
+     */
+    override fun onNewSession(
+        session: GeckoSession,
+        uri: String
+    ): GeckoResult<GeckoSession>? {
+        val sinceGesture = System.currentTimeMillis() - lastUserGestureTimestamp
+        if (sinceGesture < gestureCarryoverWindowMs) {
+            // Kürzlich echte Nutzer-Interaktion -> vermutlich gewolltes Popup
+            // (z.B. OAuth-Login-Fenster): als eigenen neuen Tab öffnen statt
+            // pauschal zu blocken.
+            val popupSession = onAllowedPopup(uri)
+            if (popupSession != null) {
+                return GeckoResult.fromValue(popupSession)
+            }
+        }
+        markBlocked(uri, BlockReason.POPUP_NO_GESTURE)
+        return GeckoResult.fromValue(null) // null = Popup wird nicht geöffnet
+    }
+
+    override fun onLoadError(
+        session: GeckoSession,
+        uri: String?,
+        error: WebRequestError
+    ): GeckoResult<String>? {
+        return null // Standard-Fehlerseite von Gecko verwenden
+    }
+
+    /**
+     * ECHTER BUG-FIX: Diese Methode fehlte komplett, deshalb blieb der
+     * Tab-Titel für immer auf "Neuer Tab" hängen - die Seite hat sich
+     * korrekt geladen, aber niemand hat GeckoView je nach dem Titel gefragt.
+     */
+    override fun onTitleChange(session: GeckoSession, title: String?) {
+        onTitleUpdate(session, title)
+    }
+
+    private fun markBlocked(uri: String, reason: BlockReason) {
+        lastBlocked = uri
+        onBlocked(uri, reason)
+    }
+}
