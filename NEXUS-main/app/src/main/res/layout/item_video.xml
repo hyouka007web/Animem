@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- design.md Abschnitt 5: Mediathek-Kacheln 2:1, bg_surface_raised bei Interaktion -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:layout_margin="@dimen/space_8"
+    android:background="@drawable/ripple_accent"
+    android:clickable="true"
+    android:focusable="true">
+
+    <ImageView
+        android:id="@+id/videoThumbnail"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:background="@color/bg_surface"
+        android:scaleType="centerCrop"
+        android:contentDescription="Video-Thumbnail" />
+
+    <TextView
+        android:id="@+id/videoTitle"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="@dimen/space_8"
+        android:textColor="@color/text_primary"
+        android:textSize="@dimen/type_body"
+        android:maxLines="2"
+        android:ellipsize="end" />
+
+    <TextView
+        android:id="@+id/videoMeta"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textColor="@color/text_muted"
+        android:textSize="@dimen/type_caption" />
+
+</LinearLayout>

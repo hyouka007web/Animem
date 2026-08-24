@@ -1,0 +1,42 @@
+name: Build Debug APK
+
+# Baut bei jedem Push auf main automatisch eine installierbare APK —
+# kein Android Studio auf deinem Gerät oder beim Kumpel nötig.
+on:
+  push:
+    branches: [ "main" ]
+  workflow_dispatch: {}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Repo auschecken
+        uses: actions/checkout@v4
+
+      - name: JDK 17 einrichten
+        uses: actions/setup-java@v4
+        with:
+          distribution: "temurin"
+          java-version: "17"
+
+      - name: Android SDK einrichten
+        uses: android-actions/setup-android@v3
+
+      - name: Android API 37.1 installieren
+        run: yes | sdkmanager --channel=3 "platforms;android-37.1"
+
+      - name: Gradle einrichten
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: "9.5.0"
+          cache-disabled: true
+
+      - name: Debug-APK bauen
+        run: gradle assembleDebug --stacktrace
+
+      - name: APK als Download bereitstellen
+        uses: actions/upload-artifact@v4
+        with:
+          name: TUFBladeBrowser-debug-apk
+          path: app/build/outputs/apk/debug/app-debug.apk
