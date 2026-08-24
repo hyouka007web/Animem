@@ -3,7 +3,6 @@ package com.tufblade.browser
 import android.animation.ValueAnimator
 import android.content.Intent
 import android.graphics.Color
-import android.net.Uri
 import android.graphics.Typeface
 import android.os.Bundle
 import android.view.KeyEvent
@@ -43,8 +42,6 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
     private lateinit var adBlockEngine: AdBlockEngine
-    private lateinit var geckoView: GeckoView
-    private var geckoSessionAttached = false
     private val tabManager = TabManager()
 
     private var sidebarExpanded = false
@@ -68,7 +65,6 @@ class MainActivity : AppCompatActivity() {
         try {
             setupSidebar()
             setupTopBar()
-            geckoView = GeckoView(this)
             openNewTab(startPage)
         } catch (e: Exception) {
             showStackTrace(android.util.Log.getStackTraceString(e))
@@ -257,9 +253,21 @@ class MainActivity : AppCompatActivity() {
             .build()
 
         val session = GeckoSession(sessionSettings)
-        val redirectShield = RedirectShield(adBlockEngine) { blockedUri, reason ->
-            runOnUiThread { showBlockedToast(blockedUri, reason) }
-        }
+        val redirectShield = RedirectShield(
+            adBlockEngine = adBlockEngine,
+            onBlocked = { blockedUri, reason ->
+                runOnUiThread { showBlockedToast(blockedUri, reason) }
+            },
+            onTitleUpdate = { updatedSession, title ->
+                runOnUiThread {
+                    val tab = tabManager.tabs.find { it.session == updatedSession }
+                    if (tab != null) {
+                        tab.title = title?.takeIf { it.isNotBlank() } ?: tab.url
+                        renderTabStrip()
+                    }
+                }
+            }
+        )
         session.navigationDelegate = redirectShield
         session.contentDelegate = redirectShield
         session.open((application as TufBladeApp).geckoRuntime)
@@ -276,15 +284,16 @@ class MainActivity : AppCompatActivity() {
         tabManager.setActive(index)
         val tab = tabManager.activeTab() ?: return
 
-        if (geckoSessionAttached) {
-            geckoView.releaseSession()
-            geckoSessionAttached = false
-        }
+        binding.contentContainer.removeAllViews()
+        val geckoView = GeckoView(this)
         geckoView.setSession(tab.session)
-        geckoSessionAttached = true
-        if (geckoView.parent == null) {
-            binding.contentContainer.addView(geckoView)
-        }
+        binding.contentContainer.addView(
+            geckoView,
+            FrameLayout.LayoutParams(
+                FrameLayout.LayoutParams.MATCH_PARENT,
+                FrameLayout.LayoutParams.MATCH_PARENT
+            )
+        )
 
         binding.urlField.setText(tab.url)
         renderTabStrip()
@@ -329,7 +338,7 @@ class MainActivity : AppCompatActivity() {
         if (!input.startsWith("http://") && !input.startsWith("https://")) {
             input = if (input.contains(" ") || !input.contains(".")) {
                 val engine = NexusSettings.getSearchEngine(this)
-                "${engine.queryUrl}${Uri.encode(input)}"
+                "${engine.queryUrl}${input.replace(" ", "+")}"
             } else {
                 "https://$input"
             }
@@ -408,12 +417,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onDestroy() {
-        if (::geckoView.isInitialized) {
-            if (geckoSessionAttached) {
-                geckoView.releaseSession()
-                geckoSessionAttached = false
-            }
-        }
         tabManager.closeAll()
         super.onDestroy()
     }

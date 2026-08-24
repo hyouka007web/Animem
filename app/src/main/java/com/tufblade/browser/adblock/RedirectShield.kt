@@ -21,7 +21,8 @@ import org.mozilla.geckoview.WebRequestError
  */
 class RedirectShield(
     private val adBlockEngine: AdBlockEngine,
-    private val onBlocked: (uri: String, reason: BlockReason) -> Unit
+    private val onBlocked: (uri: String, reason: BlockReason) -> Unit,
+    private val onTitleUpdate: (session: GeckoSession, title: String?) -> Unit = { _, _ -> }
 ) : GeckoSession.NavigationDelegate, GeckoSession.ContentDelegate {
 
     enum class BlockReason { AD_HOST, POPUP_NO_GESTURE, REDIRECT_NO_GESTURE }
@@ -87,6 +88,15 @@ class RedirectShield(
         error: WebRequestError
     ): GeckoResult<String>? {
         return null // Standard-Fehlerseite von Gecko verwenden
+    }
+
+    /**
+     * ECHTER BUG-FIX: Diese Methode fehlte komplett, deshalb blieb der
+     * Tab-Titel für immer auf "Neuer Tab" hängen - die Seite hat sich
+     * korrekt geladen, aber niemand hat GeckoView je nach dem Titel gefragt.
+     */
+    override fun onTitleChange(session: GeckoSession, title: String?) {
+        onTitleUpdate(session, title)
     }
 
     private fun markBlocked(uri: String, reason: BlockReason) {

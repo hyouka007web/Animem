@@ -4,6 +4,26 @@ Android-Browser (Kotlin + GeckoView), aufgebaut nach `design.md`.
 
 ## Was in diesem Update neu ist
 
+- **Weißer Bildschirm behoben (echter Bug, bestätigt)**: `GeckoView` wurde
+  ohne explizite `LayoutParams` in den Content-Container eingehängt —
+  FrameLayout vergibt dann nur `WRAP_CONTENT`, und GeckoView hat keine
+  eigene intrinsische Größe, landet also bei ~0×0 Pixel. Jetzt mit
+  `FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT)`.
+- **Tab-Titel funktioniert jetzt**: `RedirectShield` implementierte
+  `ContentDelegate`, aber ohne `onTitleChange` — Tabs blieben für immer auf
+  "Neuer Tab" hängen. Jetzt wird der echte Seitentitel live in die
+  Tab-Leiste übernommen.
+
+## Hinweis zu einer zirkulierenden Fehleranalyse
+
+Falls du eine Analyse mit Vorschlägen wie "GeckoView 154 ist Zukunft",
+"compileSdk 37 gibt es nicht", "Kotlin 2.2.0 existiert nicht" oder
+`session.evaluateJS(...)` gesehen hast: Das stimmt nicht (Stand August 2026,
+mit offizieller Mozilla-Doku geprüft) bzw. existiert als Methode gar nicht
+in der öffentlichen GeckoView-API. Diese Version-Downgrades **nicht**
+übernehmen — die aktuellen Werte in diesem Projekt sind korrekt aufgelöst
+und funktionieren.
+
 - **Absturz-Fix (wahrscheinliche Ursache gefunden und behoben)**: Der
   manuelle `<service android:name="org.mozilla.geckoview.GeckoViewChildService$Content">`-
   Eintrag im AndroidManifest.xml wurde entfernt. Diese Klasse existiert so
