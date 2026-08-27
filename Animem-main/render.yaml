@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: animem
+    runtime: node
+    plan: free
+    buildCommand: npm install --no-audit --no-fund && npm run build
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NEXT_PUBLIC_POCKETBASE_URL
+        sync: false
+      - key: POCKETBASE_ADMIN_EMAIL
+        sync: false
+      - key: POCKETBASE_ADMIN_PASSWORD
+        sync: false
+      - key: ANIMEM_IMAGE_HOSTS
+        sync: false

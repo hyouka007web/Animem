@@ -1,0 +1,64 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-midnight-deep text-neutral-100;
+  }
+}
+
+@layer components {
+  /* Glaskarte: klare, leicht kantige Schnitte statt runder Wolkenform */
+  .glass-panel {
+    @apply relative rounded-xl border border-white/10 bg-white/[0.04] backdrop-blur-xl;
+  }
+
+  /* Fragmentierter Hintergrund-Drift für Hero-/Landing-Bereiche */
+  .realm-backdrop {
+    @apply relative overflow-hidden bg-realm-drift;
+  }
+  .realm-backdrop::before {
+    content: "";
+    @apply pointer-events-none absolute -inset-24 animate-drift bg-realm-glow;
+  }
+
+  /* Glitch-Rand bei Hover: kurze chromatische Abweichung statt reinem Glow */
+  .glitch-border {
+    @apply relative;
+  }
+  .glitch-border::after {
+    content: "";
+    @apply pointer-events-none absolute inset-0 rounded-[inherit] opacity-0 ring-2 ring-realm-cyan transition-opacity duration-150;
+  }
+  .glitch-border:hover::after {
+    @apply animate-glitch opacity-100;
+  }
+
+  /* Fokus-Reveal: Bild wird beim Hover schärfer, Blur nimmt ab — "Rätsel lösen" */
+  .focus-reveal-blur {
+    @apply blur-[2px] saturate-[.75] transition-all duration-300 ease-out;
+  }
+  .focus-reveal-group:hover .focus-reveal-blur {
+    @apply blur-0 saturate-100;
+  }
+
+  /* Schimmer-Text (Neon-Schreibmaschinen-Vibe, sparsam einsetzen) */
+  .shimmer-text {
+    background: linear-gradient(90deg, #4ce3f0 0%, #e0a458 50%, #7c3aed 100%);
+    background-size: 200% auto;
+    @apply animate-shimmer bg-clip-text text-transparent;
+  }
+}
+
+/* Autofill-Styling für Dark Mode */
+input:-webkit-autofill,
+input:-webkit-autofill:hover,
+input:-webkit-autofill:focus,
+textarea:-webkit-autofill,
+textarea:-webkit-autofill:hover,
+textarea:-webkit-autofill:focus {
+  -webkit-text-fill-color: #ffffff !important;
+  -webkit-box-shadow: 0 0 0px 1000px #18181b inset !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
