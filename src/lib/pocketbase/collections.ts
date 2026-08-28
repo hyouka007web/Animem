@@ -1,13 +1,5 @@
-// ============================================================
-// Zentrale Liste aller PocketBase-Collection-Namen.
-// Immer von hier importieren statt Strings zu wiederholen —
-// so bleibt ein Tippfehler an einer Stelle statt an zwanzig.
-//
-// "users" ist PocketBase's eingebaute Auth-Collection — bei uns
-// zugleich das Profil (username, role, avatar_url, bio, …ist alles
-// direkt am Nutzer-Datensatz, keine separate Profil-Tabelle nötig).
-// ============================================================
-
+// Zentrale Sammlung aller PocketBase-Collection-Namen. Die Werte müssen exakt
+// mit den Namen in scripts/pocketbase-setup.mjs übereinstimmen.
 export const COL = {
   users: "users",
   uploads: "uploads",

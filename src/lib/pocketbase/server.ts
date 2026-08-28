@@ -1,52 +1,71 @@
 import "server-only";
 import PocketBase from "pocketbase";
+import { COL } from "@/lib/pocketbase/collections";
 
-export const SESSION_COOKIE = "animem-session";
+export const SESSION_COOKIE = "animem_session";
 
-function requiredEnv(name: string): string {
-  const value = process.env[name];
-  if (!value) throw new Error(`Missing required environment variable: ${name}`);
-  return value;
+const POCKETBASE_URL = process.env.NEXT_PUBLIC_POCKETBASE_URL;
+
+if (!POCKETBASE_URL) {
+  throw new Error("NEXT_PUBLIC_POCKETBASE_URL ist nicht gesetzt.");
 }
 
-const rawPbUrl = requiredEnv("NEXT_PUBLIC_POCKETBASE_URL");
-let parsedPbUrl: URL;
-try { parsedPbUrl = new URL(rawPbUrl); } catch { throw new Error("NEXT_PUBLIC_POCKETBASE_URL muss eine gültige URL sein."); }
-if (process.env.NODE_ENV === "production" && parsedPbUrl.protocol !== "https:") {
-  throw new Error("NEXT_PUBLIC_POCKETBASE_URL muss in Produktion HTTPS verwenden.");
-}
-export const PB_URL = parsedPbUrl.toString().replace(/\/$/, "");
+let adminClientPromise: Promise<PocketBase> | null = null;
 
-let cachedAdmin: PocketBase | null = null;
-
-export async function createAdminClient(): Promise<PocketBase> {
-  if (cachedAdmin && cachedAdmin.authStore.isValid) return cachedAdmin;
-
-  const pb = new PocketBase(PB_URL);
-  pb.autoCancellation(false);
-  await pb.admins.authWithPassword(
-    requiredEnv("POCKETBASE_ADMIN_EMAIL"),
-    requiredEnv("POCKETBASE_ADMIN_PASSWORD")
-  );
-
-  cachedAdmin = pb;
+async function authenticateAdmin(): Promise<PocketBase> {
+  const adminEmail = process.env.POCKETBASE_ADMIN_EMAIL;
+  const adminPassword = process.env.POCKETBASE_ADMIN_PASSWORD;
+  if (!adminEmail || !adminPassword) {
+    throw new Error("POCKETBASE_ADMIN_EMAIL oder POCKETBASE_ADMIN_PASSWORD ist nicht gesetzt.");
+  }
+  const pb = new PocketBase(POCKETBASE_URL);
+  await pb.admins.authWithPassword(adminEmail, adminPassword);
   return pb;
 }
 
+/**
+ * Liefert einen als Admin authentifizierten PocketBase-Client. Die
+ * Admin-Session wird pro Serverprozess wiederverwendet und bei Bedarf
+ * erneuert, statt bei jedem Aufruf neu zu authentifizieren.
+ */
+export async function createAdminClient(): Promise<PocketBase> {
+  if (!adminClientPromise) {
+    adminClientPromise = authenticateAdmin();
+  }
+
+  try {
+    const pb = await adminClientPromise;
+    if (!pb.authStore.isValid) {
+      adminClientPromise = authenticateAdmin();
+      return await adminClientPromise;
+    }
+    return pb;
+  } catch (error) {
+    adminClientPromise = null;
+    throw error;
+  }
+}
+
+/**
+ * Authentifiziert einen Nutzer per E-Mail/Passwort gegen die "users"-Auth-
+ * Collection und gibt Token + Nutzerdatensatz zurück.
+ */
 export async function authenticateUser(email: string, password: string) {
-  const pb = new PocketBase(PB_URL);
-  pb.autoCancellation(false);
-  const auth = await pb.collection("users").authWithPassword(email, password);
+  const pb = new PocketBase(POCKETBASE_URL);
+  const auth = await pb.collection(COL.users).authWithPassword(email, password);
   return { token: auth.token, record: auth.record };
 }
 
+/**
+ * Prüft ein Session-Token (aus dem Cookie) gegen PocketBase und liefert bei
+ * Gültigkeit den aktuellen Nutzerdatensatz zurück, sonst null.
+ */
 export async function getUserFromToken(token: string) {
-  const pb = new PocketBase(PB_URL);
+  const pb = new PocketBase(POCKETBASE_URL);
   pb.authStore.save(token, null);
-
   try {
-    const result = await pb.collection("users").authRefresh();
-    return result.record;
+    const auth = await pb.collection(COL.users).authRefresh();
+    return auth.record;
   } catch {
     return null;
   }

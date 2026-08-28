@@ -1,73 +1,48 @@
 import "server-only";
 import type PocketBase from "pocketbase";
-import { COL } from "@/lib/pocketbase/collections";
-import { slugify } from "@/lib/slugify";
+import { slugify, uniqueSlug } from "@/lib/slugify";
 
-// PocketBase kennt kein "upsert by unique column". Wir suchen daher zuerst
-// per Slug und legen nur an, wenn wirklich noch nichts existiert. Wird von
-// Serien- und Film-Erstellung/Bearbeitung gleichermaßen genutzt.
-export async function resolveTaxonomyIds(
-  pb: PocketBase,
-  collection: typeof COL.genres | typeof COL.tags,
-  names: string[]
-): Promise<string[]> {
+/**
+ * Nimmt eine Liste von Namen (z.B. Genre- oder Tag-Bezeichnungen, wie sie im
+ * Formular eingegeben werden) und liefert die passenden Record-IDs zurück.
+ * Bereits vorhandene Einträge (Vergleich case-insensitive über den Slug)
+ * werden wiederverwendet, fehlende neu angelegt.
+ */
+export async function resolveTaxonomyIds(pb: PocketBase, collection: string, names: string[]): Promise<string[]> {
   const ids: string[] = [];
-  const seen = new Set<string>();
-
   for (const rawName of names) {
     const name = rawName.trim();
     if (!name) continue;
     const slug = slugify(name);
-    if (!slug || seen.has(slug)) continue;
-    seen.add(slug);
-
-    try {
-      const existing = await pb.collection(collection).getFirstListItem(pb.filter("slug = {:slug}", { slug }));
+    const existing = await pb.collection(collection).getFirstListItem(pb.filter("slug = {:slug}", { slug })).catch(() => null);
+    if (existing) {
       ids.push(existing.id);
       continue;
-    } catch {
-      // Noch nicht vorhanden — unten neu anlegen
     }
-
-    const created = await pb.collection(collection).create({ name, slug });
+    const created = await pb.collection(collection).create({ name, slug: await uniqueSlug(pb, collection, name) });
     ids.push(created.id);
   }
-
   return ids;
 }
 
-// Für die Admin-Tabellen: löst genre_ids/tag_ids zurück zu Namen auf, im
-// Format, das SeriesFormModal/SeriesTable erwarten ([{ genre: { name } }]).
-export async function loadTaxonomyNames(
-  pb: PocketBase,
-  collection: typeof COL.genres | typeof COL.tags,
-  ids: string[],
-  wrapperKey: "genre" | "tag"
-) {
-  const results = await Promise.all(
-    ids.map(async (id) => {
-      try {
-        const doc = await pb.collection(collection).getOne(id);
-        return { [wrapperKey]: { name: doc.name } };
-      } catch {
-        return null;
-      }
-    })
+/**
+ * Kehrt resolveTaxonomyIds um: lädt zu einer Liste von IDs die Namen. IDs, zu
+ * denen kein Datensatz (mehr) existiert, werden stillschweigend übersprungen.
+ */
+export async function loadTaxonomyNames(pb: PocketBase, collection: string, ids: string[], _kind: "genre" | "tag"): Promise<string[]> {
+  const names = await Promise.all(
+    ids.map((id) => pb.collection(collection).getOne(id).then((record) => record.name as string).catch(() => null))
   );
-  return results.filter(Boolean);
+  return names.filter((name): name is string => Boolean(name));
 }
 
-// Für Kategorie-/Tag-Detailseiten: lädt alle veröffentlichten Serien/Filme,
-// deren genre_ids bzw. tag_ids das gesuchte Genre/Tag enthalten. genre_ids/
-// tag_ids liegen als JSON-Array von IDs vor — "~" prüft eine Teilstring-
-// Übereinstimmung in der serialisierten Form, was für feste ID-Strings
-// zuverlässig funktioniert.
-export async function findByTaxonomy(
-  pb: PocketBase,
-  collection: typeof COL.series | typeof COL.movies,
-  field: "genre_ids" | "tag_ids",
-  taxonomyId: string
-) {
-  const filter = pb.filter(`${field} ~ {:id} && status = "PUBLISHED"`, { id: taxonomyId });
-  return await pb.collection(collection).getFullList({ filter });
+/**
+ * Findet alle Datensätze einer Collection, deren JSON-Array-Feld (z.B.
+ * genre_ids/tag_ids) die angegebene Taxonomie-ID enthält.
+ */
+export async function findByTaxonomy(pb: PocketBase, collection: string, field: string, taxonomyId: string) {
+  return pb.collection(collection).getFullList({
+    filter: pb.filter(`${field} ~ {:id}`, { id: taxonomyId }),
+    sort: "-avg_rating",
+  });
 }
