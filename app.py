@@ -1,7 +1,7 @@
 """Startpunkt:  python app.py   (Entwicklung)   |   gunicorn app:app   (Produktion)"""
 import os
 
-from animem import create_app
+from __init__ import create_app
 
 app = create_app()
 
