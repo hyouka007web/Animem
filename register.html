@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% from "_macros.html" import logo %}
+{% block title %}Registrieren · {{ site_name }}{% endblock %}
+{% block shell %}
+<main id="main" class="auth"><div class="auth-card">
+  <a href="/" style="display:inline-block;margin-bottom:18px">{{ logo(site_name) }}</a>
+  <h1 style="font-size:1.3rem;margin-bottom:18px">Konto erstellen</h1>
+  {% if not open %}
+    <p class="muted-2 small mb">Die Registrierung ist derzeit geschlossen.</p>
+  {% else %}
+  <form method="post" action="/api/auth/register" data-auth-form="register" novalidate>
+    <div class="field"><label class="f" for="username">Benutzername</label><input class="input" id="username" name="username" autocomplete="username" minlength="3" maxlength="32" pattern="[A-Za-z0-9_]+" required autofocus><p class="tiny muted" style="margin-top:4px">3–32 Zeichen: Buchstaben, Zahlen, Unterstrich</p></div>
+    <div class="field"><label class="f" for="email">E-Mail</label><input class="input" id="email" name="email" type="email" autocomplete="email" required></div>
+    <div class="field"><label class="f" for="password">Passwort</label><input class="input" id="password" name="password" type="password" autocomplete="new-password" minlength="8" maxlength="128" required><p class="tiny muted" style="margin-top:4px">Mindestens 8 Zeichen</p></div>
+    <p class="msg err" aria-live="polite" data-msg>{{ error or '' }}</p>
+    <button class="btn" style="width:100%" type="submit">Registrieren</button>
+  </form>
+  {% endif %}
+  <p class="tiny muted center" style="margin-top:16px">Schon ein Konto? <a class="link" href="/login">Anmelden</a></p>
+</div></main>
+{% endblock %}

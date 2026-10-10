@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}{{ ticket.subject }} · Support · {{ site_name }}{% endblock %}
+{% block content %}
+<div class="wrap-sm page">
+  <a class="muted small" href="{{ back_url }}">← Zurück</a>
+  <div class="row between" style="margin:8px 0 24px">
+    <h1 style="font-size:1.3rem">{{ ticket.subject }}</h1>
+    {% if is_staff %}
+      <select class="input" style="width:auto" data-ticket-status="{{ ticket.id }}">
+        {% for k, v in status_labels.items() %}<option value="{{ k }}" {{ 'selected' if k == ticket.status }}>{{ v }}</option>{% endfor %}
+      </select>
+    {% else %}<span class="badge">{{ status_labels[ticket.status] }}</span>{% endif %}
+  </div>
+  <div class="stack" id="messages">
+    {% for m in messages %}
+    <div class="bubble {{ 'staff' if m.is_staff }} {{ 'mine' if m.sender_id == user.id }}">
+      <p class="tiny muted" style="margin-bottom:2px">{{ m.user.username if m.user else '—' }}{% if m.is_staff %} · Team{% endif %} · {{ m.created|datetime_de }}</p>
+      <p class="small pre">{{ m.content }}</p>
+    </div>
+    {% endfor %}
+  </div>
+  {% if ticket.status == 'CLOSED' and not is_staff %}
+    <p class="small muted mt">Dieses Ticket ist geschlossen.</p>
+  {% else %}
+  <div class="stack mt" data-ticket-reply data-ticket="{{ ticket.id }}">
+    <textarea class="input" data-content maxlength="5000" placeholder="Nachricht schreiben …"></textarea>
+    <div class="row"><button class="btn" data-submit>Senden</button><span class="msg" data-msg></span></div>
+  </div>
+  {% endif %}
+</div>
+{% endblock %}

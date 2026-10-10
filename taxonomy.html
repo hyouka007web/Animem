@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% from "_macros.html" import poster %}
+{% set is_tag = request.path.startswith('/tags/') %}
+{% block title %}{{ '#' if is_tag }}{{ item.name }} · {{ site_name }}{% endblock %}
+{% block content %}
+<div class="wrap page">
+  <h1 class="mb-lg">{{ 'Tag: #' if is_tag else 'Kategorie: ' }}{{ item.name }}</h1>
+  {% if series %}<h2 class="mb">Serien</h2><div class="grid-posters mb-lg">{% for s in series %}{{ poster('/series/' ~ s.slug, s.title, s.thumbnail_url, s.avg_rating) }}{% endfor %}</div>{% endif %}
+  {% if movies %}<h2 class="mb">Filme</h2><div class="grid-posters">{% for m in movies %}{{ poster('/movies/' ~ m.slug, m.title, m.thumbnail_url, m.avg_rating) }}{% endfor %}</div>{% endif %}
+  {% if not series and not movies %}<p class="muted small">Noch nichts {{ 'mit diesem Tag' if is_tag else 'in dieser Kategorie' }}.</p>{% endif %}
+</div>
+{% endblock %}

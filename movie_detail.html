@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% from "_macros.html" import stars_widget, reviews, player, collection_box %}
+{% block title %}{{ movie.title }} · {{ site_name }}{% endblock %}
+{% block content %}
+<div class="wrap-md page">
+  <h1 style="font-size:1.5rem">{{ movie.title }}</h1>
+  <p class="muted small" style="margin-top:4px"><span class="star">★</span> {{ '%.1f'|format(movie.avg_rating) }} · {{ movie.ratings_count }} Bewertungen</p>
+  <div class="mt">
+    {{ player(streams, movie.title) }}
+    {% if user %}<span data-watch-tracker data-type="MOVIE" data-key="movieId" data-id="{{ movie.id }}" hidden></span>{% endif %}
+  </div>
+  {% if genres or tags %}<div class="row" style="margin-top:14px;gap:6px">
+    {% for g in genres %}<a class="chip" href="/genres/{{ g.slug }}">{{ g.name }}</a>{% endfor %}
+    {% for t in tags %}<a class="chip" href="/tags/{{ t.slug }}">#{{ t.name }}</a>{% endfor %}</div>{% endif %}
+  <div class="row mt">
+    {% if user %}
+      <button class="btn btn-ghost {{ 'on' if watchlist }}" data-toggle="/api/watchlist" data-body='{"movieId":"{{ movie.id }}"}' data-on="{{ 1 if watchlist else 0 }}" data-label-on="Auf der Watchlist" data-label-off="Zur Watchlist">{{ 'Auf der Watchlist' if watchlist else 'Zur Watchlist' }}</button>
+    {% else %}<a class="link small" href="/login?next={{ request.path }}">Anmelden, um zu bewerten oder Listen zu nutzen</a>{% endif %}
+  </div>
+  {% if user %}<div style="margin-top:12px">{{ collection_box(collections, 'movieId', movie.id) }}</div>{% endif %}
+  {% if movie.description %}<p class="muted-2 small pre mt">{{ movie.description }}</p>{% endif %}
+  {% if user %}<div class="mt-lg">{{ stars_widget('MOVIE', movie.id, rating, comment) }}</div>{% endif %}
+  {{ reviews('MOVIE', movie.id) }}
+</div>
+{% endblock %}

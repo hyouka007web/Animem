@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% from "_macros.html" import poster %}
+{% block title %}Suche · {{ site_name }}{% endblock %}
+{% block content %}
+<div class="backdrop"><div class="wrap page">
+  <h1 class="mb">Suche</h1>
+  <form method="get" action="/search" class="mb-lg" role="search">
+    <input class="input" type="search" name="q" value="{{ q }}" placeholder="Serien oder Filme suchen …" data-live-search autofocus>
+  </form>
+  {% if not series and not movies %}<p class="muted small">Keine Ergebnisse gefunden.</p>{% endif %}
+  {% if series %}<h2 class="mb">Serien</h2><div class="grid-posters mb-lg">{% for s in series %}{{ poster('/series/' ~ s.slug, s.title, s.thumbnail_url) }}{% endfor %}</div>{% endif %}
+  {% if movies %}<h2 class="mb">Filme</h2><div class="grid-posters">{% for m in movies %}{{ poster('/movies/' ~ m.slug, m.title, m.thumbnail_url) }}{% endfor %}</div>{% endif %}
+</div></div>
+{% endblock %}

@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+{% from "_macros.html" import stars_widget, reviews, collection_box %}
+{% block title %}{{ series.title }} · {{ site_name }}{% endblock %}
+{% block content %}
+{% if series.banner_url %}<div class="hero-banner"><img src="{{ series.banner_url }}" alt="" referrerpolicy="no-referrer"></div>{% endif %}
+<div class="wrap-md page" style="padding-top:{{ '0' if series.banner_url else '28px' }}">
+  <div class="detail {{ 'up' if series.banner_url }}">
+    <div class="cover"><img src="{{ series.thumbnail_url }}" alt="{{ series.title }}" referrerpolicy="no-referrer"></div>
+    <div class="grow">
+      <h1 style="font-size:1.9rem">{{ series.title }}</h1>
+      <p class="muted-2 small" style="margin-top:6px"><span class="star">★</span> {{ '%.1f'|format(series.avg_rating) }} · {{ series.ratings_count }} Bewertungen</p>
+      {% if series.description %}<p class="muted-2 small pre" style="margin-top:14px;max-width:640px">{{ series.description }}</p>{% endif %}
+      {% if genres or tags %}
+      <div class="row" style="margin-top:12px;gap:6px">
+        {% for g in genres %}<a class="chip" href="/genres/{{ g.slug }}">{{ g.name }}</a>{% endfor %}
+        {% for t in tags %}<a class="chip" href="/tags/{{ t.slug }}">#{{ t.name }}</a>{% endfor %}
+      </div>{% endif %}
+      <div class="row" style="margin-top:16px">
+        {% if user %}
+          <button class="btn btn-ghost {{ 'on' if subscribed }}" data-toggle="/api/subscriptions" data-body='{"seriesId":"{{ series.id }}"}' data-on="{{ 1 if subscribed else 0 }}" data-label-on="Abonniert" data-label-off="Abonnieren">{{ 'Abonniert' if subscribed else 'Abonnieren' }}</button>
+          <button class="btn btn-ghost {{ 'on' if watchlist }}" data-toggle="/api/watchlist" data-body='{"seriesId":"{{ series.id }}"}' data-on="{{ 1 if watchlist else 0 }}" data-label-on="Auf der Watchlist" data-label-off="Zur Watchlist">{{ 'Auf der Watchlist' if watchlist else 'Zur Watchlist' }}</button>
+        {% else %}
+          <a class="link small" href="/login?next={{ request.path }}">Anmelden, um zu bewerten, zu abonnieren oder Listen zu nutzen</a>
+        {% endif %}
+      </div>
+      {% if user %}<div style="margin-top:12px">{{ collection_box(collections, 'seriesId', series.id) }}</div>{% endif %}
+    </div>
+  </div>
+
+  <div class="stack-lg mt-lg">
+    {% for season in seasons %}
+    <section>
+      <h2 class="mb">Staffel {{ season.number }}{% if season.title %} — {{ season.title }}{% endif %}</h2>
+      <div class="grid-cards c4">
+        {% for ep in season.episodes %}
+        <a class="ep" href="/series/{{ series.slug }}/s/{{ season.number }}/e/{{ ep.number }}">
+          <div class="thumb"><img src="{{ series.thumbnail_url }}" alt="" loading="lazy" referrerpolicy="no-referrer"><span class="no">E{{ ep.number }}</span>{% if ep.id in watched %}<span class="seen" title="Gesehen">✓</span>{% endif %}</div>
+          <p class="t">{{ ep.number }}. {{ ep.title }}</p>
+        </a>
+        {% endfor %}
+        {% if not season.episodes %}<p class="muted small" style="grid-column:1/-1">Noch keine Folgen veröffentlicht.</p>{% endif %}
+      </div>
+    </section>
+    {% endfor %}
+    {% if not seasons %}<p class="muted small">Für diese Serie gibt es noch keine Staffeln.</p>{% endif %}
+  </div>
+
+  {% if user %}<div class="mt-lg">{{ stars_widget('SERIES', series.id, rating, comment) }}</div>{% endif %}
+  {{ reviews('SERIES', series.id) }}
+</div>
+{% endblock %}

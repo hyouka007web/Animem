@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+{% from "_macros.html" import poster, empty %}
+{% block title %}Profil · {{ site_name }}{% endblock %}
+{% block content %}
+<div class="wrap-md page stack-lg">
+  <!-- Kopf & Bearbeiten -->
+  <section class="panel" data-profile-form>
+    {% if me.banner_url %}<img src="{{ me.banner_url }}" alt="" style="width:100%;height:120px;object-fit:cover;border-radius:10px;margin-bottom:14px" referrerpolicy="no-referrer">{% endif %}
+    <div class="row" style="gap:16px">
+      {% if me.avatar_url %}<img class="avatar-lg" src="{{ me.avatar_url }}" alt="" referrerpolicy="no-referrer">{% else %}<span class="avatar-lg" aria-hidden="true"></span>{% endif %}
+      <div>
+        <h1 style="font-size:1.4rem">{{ me.display_name or me.username }} <span class="badge">{{ ROLE_LABELS[me.role] }}</span></h1>
+        <p class="muted small">@{{ me.username }} · <a class="link" href="/u/{{ me.username }}">Öffentliches Profil ansehen</a></p>
+        {% if me.bio %}<p class="muted-2 small" style="margin-top:6px">{{ me.bio }}</p>{% endif %}
+      </div>
+    </div>
+    <details style="margin-top:16px">
+      <summary class="btn btn-ghost btn-sm" style="display:inline-flex;cursor:pointer">Profil bearbeiten</summary>
+      <div class="stack" style="margin-top:14px">
+        <div><label class="f" for="p-name">Anzeigename</label><input class="input" id="p-name" maxlength="64" value="{{ me.display_name }}"></div>
+        <div><label class="f" for="p-bio">Bio</label><textarea class="input" id="p-bio" maxlength="500">{{ me.bio }}</textarea></div>
+        <div data-upload-field="avatar"><label class="f">Avatar</label>
+          <input class="input" data-url placeholder="https://… oder Bild hochladen" value="{{ me.avatar_url }}">
+          <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" data-file style="margin-top:6px" class="small"></div>
+        <div data-upload-field="banner"><label class="f">Banner</label>
+          <input class="input" data-url placeholder="https://… oder Bild hochladen" value="{{ me.banner_url }}">
+          <input type="file" accept="image/png,image/jpeg,image/webp,image/gif" data-file style="margin-top:6px" class="small"></div>
+        <div class="row"><button class="btn" data-save-profile>Profil speichern</button><span class="msg" data-msg></span></div>
+      </div>
+    </details>
+  </section>
+
+  <!-- Sieger-Treppchen -->
+  <section data-favorites>
+    <h2 class="mb">Mein Sieger-Treppchen</h2>
+    <div class="grid-cards c3" style="grid-template-columns:1fr">
+      {% for rank in (1, 2, 3) %}
+      {% set f = favorites.get(rank) %}{% set t = (f.series or f.movie) if f else None %}
+      <div class="panel-solid row" data-rank="{{ rank }}" style="flex-wrap:nowrap">
+        <div class="fav-slot rank-{{ rank }}"><div class="cov">{% if t %}<img src="{{ t.thumbnail_url }}" alt="" referrerpolicy="no-referrer">{% endif %}</div></div>
+        <div class="grow">
+          <p style="font-weight:600">Platz {{ rank }}</p>
+          <select class="input" data-pick style="margin-top:6px">
+            <option value="">— nichts ausgewählt —</option>
+            <optgroup label="Serien">{% for s in all_series %}<option value="series:{{ s.id }}" {{ 'selected' if f and f.series_id == s.id }}>{{ s.title }}</option>{% endfor %}</optgroup>
+            <optgroup label="Filme">{% for m in all_movies %}<option value="movie:{{ m.id }}" {{ 'selected' if f and f.movie_id == m.id }}>{{ m.title }}</option>{% endfor %}</optgroup>
+          </select>
+          <p class="msg tiny" data-msg></p>
+        </div>
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Listen -->
+  <section>
+    <h2 class="mb">Watchlist</h2>
+    <div class="grid-posters">
+      {% for it in watchlist %}{% set t = it.series or it.movie %}{% if t %}{{ poster(('/series/' if it.series else '/movies/') ~ t.slug, t.title, t.thumbnail_url) }}{% endif %}{% endfor %}
+      {% if not watchlist %}{{ empty('Deine Watchlist ist noch leer.') }}{% endif %}
+    </div>
+  </section>
+  <section>
+    <h2 class="mb">Abonnements</h2>
+    <div class="grid-posters">
+      {% for it in subs %}{% if it.series %}{{ poster('/series/' ~ it.series.slug, it.series.title, it.series.thumbnail_url) }}{% endif %}{% endfor %}
+      {% if not subs %}{{ empty('Du hast noch keine Serien abonniert.') }}{% endif %}
+    </div>
+  </section>
+  <section>
+    <div class="row between mb"><h2>Sammlungen</h2><a class="link small" href="/library?tab=collections">Verwalten</a></div>
+    <div class="stack">
+      {% for c in collections %}<div class="list-item"><span>{{ c.title }}</span><span class="tiny muted">{{ c.titles|length }} Titel</span></div>{% endfor %}
+      {% if not collections %}<p class="muted small">Du hast noch keine Sammlung erstellt.</p>{% endif %}
+    </div>
+  </section>
+
+  <!-- Sicherheit -->
+  <section class="panel" data-security data-enabled="{{ 1 if user.two_factor_enabled else 0 }}">
+    <h2 style="margin-bottom:4px">Sicherheit</h2>
+    <p class="muted small mb">Zwei-Faktor-Authentifizierung (2FA) schützt dein Konto zusätzlich mit einem Code aus einer Authenticator-App.</p>
+    <div data-2fa-off {{ 'hidden' if user.two_factor_enabled }}>
+      <button class="btn" data-2fa-start>2FA einrichten</button>
+      <div data-2fa-setup hidden class="stack mt">
+        <p class="small muted-2">1. Öffne die Authenticator-App (z. B. Aegis, andOTP, Google Authenticator) und füge ein Konto hinzu – auf dem Handy reicht ein Tipp auf den Link:</p>
+        <a class="btn btn-ghost btn-sm" data-otp-link href="#">In Authenticator-App öffnen</a>
+        <p class="small muted-2">oder trage den Schlüssel manuell ein:</p>
+        <div class="code" data-secret></div>
+        <p class="small muted-2">2. Speichere diese Wiederherstellungscodes sicher – sie werden nur jetzt angezeigt:</p>
+        <div class="code" data-recovery style="white-space:pre-line"></div>
+        <p class="small muted-2">3. Gib den aktuellen 6-stelligen Code ein, um 2FA zu aktivieren:</p>
+        <div class="row"><input class="input" inputmode="numeric" maxlength="6" autocomplete="one-time-code" data-2fa-code style="max-width:160px;text-align:center;letter-spacing:.2em"><button class="btn" data-2fa-enable>Aktivieren</button></div>
+      </div>
+    </div>
+    <div data-2fa-on {{ 'hidden' if not user.two_factor_enabled }}>
+      <p><span class="badge green">2FA ist aktiv</span></p>
+      <div class="row mt"><input class="input" placeholder="Code oder Wiederherstellungscode" data-2fa-off-code style="max-width:260px"><button class="btn btn-danger" data-2fa-disable>2FA deaktivieren</button></div>
+    </div>
+    <p class="msg" data-2fa-msg></p>
+
+    <h3 style="margin-top:24px;margin-bottom:8px">Aktive Sitzungen</h3>
+    <div class="stack" data-sessions><p class="muted small">Lade …</p></div>
+    <button class="btn btn-ghost btn-sm" style="margin-top:10px" data-revoke-others>Alle anderen Sitzungen abmelden</button>
+  </section>
+</div>
+{% endblock %}

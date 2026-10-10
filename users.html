@@ -1,0 +1,29 @@
+{% extends "admin/_layout.html" %}
+{% from "_macros.html" import logo %}
+{% block title %}Nutzer · Admin · {{ site_name }}{% endblock %}
+{% block admin %}
+<h1 class="mb-lg">Admins & Nutzer</h1>
+<div class="table-wrap"><table>
+  <thead><tr><th>Nutzer</th><th>Rolle</th><th>Status</th><th>Seit</th><th></th></tr></thead>
+  <tbody>
+  {% for u in items %}
+  {% set self = u.id == actor.id %}
+  {% set manageable = (not self) and (actor.role == 'OWNER' or u.role in ('USER', 'ADMIN')) %}
+  <tr>
+    <td><a class="link" href="/u/{{ u.username }}">{{ u.username }}</a><br><span class="tiny muted">{{ u.email }}</span></td>
+    <td>
+      {% if manageable %}
+      <select class="input" style="width:auto;padding:6px 8px" data-role-select="{{ u.id }}">
+        {% for r in (['USER','ADMIN','HEAD_ADMIN'] if actor.role == 'OWNER' else ['USER','ADMIN']) %}<option value="{{ r }}" {{ 'selected' if r == u.role }}>{{ ROLE_LABELS[r] }}</option>{% endfor %}
+        {% if u.role == 'OWNER' %}<option value="OWNER" selected disabled>Owner</option>{% endif %}
+      </select>
+      {% else %}<span class="badge">{{ ROLE_LABELS[u.role] }}</span>{% endif %}
+    </td>
+    <td>{% if u.is_banned %}<span class="badge red">gesperrt</span>{% else %}<span class="badge green">aktiv</span>{% endif %}</td>
+    <td class="muted">{{ u.created|date_de }}</td>
+    <td>{% if manageable %}<button class="btn btn-ghost btn-sm" data-ban="{{ u.id }}" data-value="{{ 'false' if u.is_banned else 'true' }}">{{ 'Entsperren' if u.is_banned else 'Sperren' }}</button>{% endif %}</td>
+  </tr>
+  {% endfor %}
+  </tbody></table></div>
+<p class="tiny muted mt">Die Rolle „Owner“ wird nicht über die App vergeben, sondern per <code>python manage.py make-owner</code>.</p>
+{% endblock %}

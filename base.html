@@ -1,0 +1,63 @@
+{% from "_macros.html" import logo %}
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1e1e1e">
+  <meta name="description" content="Anime-Serien, Filme, Watchlist, Bewertungen und Community.">
+  <title>{% block title %}{{ site_name }}{% endblock %}</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Cpath d='M24 2 44 24 24 46 4 24Z' fill='none' stroke='%23ffb800' stroke-width='3'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/app.css') }}">
+</head>
+<body>
+<a class="skip" href="#main">Zum Inhalt springen</a>
+{% block shell %}
+<header class="topbar">
+  <div class="wrap">
+    <a href="/" aria-label="Startseite">{{ logo(site_name) }}</a>
+    <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-hidden="true" tabindex="-1">
+    <label for="nav-toggle" class="burger" aria-label="Menü öffnen">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M4 12h16M4 17h16"/></svg>
+    </label>
+    <nav class="drawer" aria-label="Hauptmenü">
+      <div class="drawer-inner">
+        <div class="drawer-head">
+          <a href="/">{{ logo(site_name) }}</a>
+          <label for="nav-toggle" class="burger" aria-label="Menü schließen"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></label>
+        </div>
+        {% if user %}
+          <a class="nav-link" href="/profile" style="background:rgba(255,255,255,.05)"><span>{{ user.username }} <span class="badge" style="margin-left:6px">{{ ROLE_LABELS[user.role] }}</span></span></a>
+        {% else %}
+          <div class="row"><a class="btn grow" href="/login">Anmelden</a><a class="btn btn-ghost grow" href="/register">Registrieren</a></div>
+        {% endif %}
+        {% macro item(href, label, count=None) %}<a class="nav-link {{ 'active' if request.path == href.split('?')[0] and (href.split('?')|length == 1 or request.full_path.rstrip('?') == href) }}" href="{{ href }}"><span>{{ label }}</span>{% if count %}<span class="count">{{ count }}</span>{% endif %}</a>{% endmacro %}
+        <p class="nav-section">Entdecken</p>
+        {{ item('/', 'Startseite') }}{{ item('/search', 'Suche') }}{{ item('/series', 'Serien') }}{{ item('/movies', 'Filme') }}{{ item('/categories', 'Kategorien') }}
+        {% if user %}
+        <p class="nav-section">Bibliothek</p>
+        {{ item('/library?tab=watchlist', 'Watchlist', counts.watchlist) }}
+        {{ item('/library?tab=subscriptions', 'Abonniert', counts.subscriptions) }}
+        {{ item('/library?tab=history', 'Verlauf') }}
+        {{ item('/library?tab=watched-episodes', 'Gesehene Folgen') }}
+        {{ item('/library?tab=watched-movies', 'Gesehene Filme') }}
+        {{ item('/library?tab=collections', 'Sammlungen') }}
+        {% endif %}
+        <p class="nav-section">Community</p>
+        {{ item('/forum', 'Forum') }}{{ item('/support', 'Support') }}
+        {% if user %}
+        <p class="nav-section">Konto</p>
+        {{ item('/profile', 'Profil') }}
+        {% if can.manage_content(user.role) %}<p class="nav-section">Verwaltung</p>{{ item('/admin', 'Admin-Bereich') }}{% endif %}
+        {% if user.role == 'OWNER' %}{{ item('/owner', 'Owner Control Center') }}{% endif %}
+        <form method="post" action="/logout" style="margin-top:20px"><button class="btn btn-ghost" style="width:100%" type="submit">Abmelden</button></form>
+        {% endif %}
+      </div>
+    </nav>
+  </div>
+</header>
+<main id="main">{% block content %}{% endblock %}</main>
+{% endblock %}
+<script src="{{ url_for('static', filename='js/app.js') }}" defer></script>
+</body>
+</html>
