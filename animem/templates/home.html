@@ -1,0 +1,63 @@
+{% extends "base.html" %}
+{% from "_macros.html" import card, podium, rank_row with context %}
+{% block title %}{{ site_name }} – Anime-Serien & Filme{% endblock %}
+{% block content %}
+<div class="backdrop">
+  <section class="wrap-md" style="padding-top:26px">
+    <h1 class="podium-title">Die beliebtesten Serien <span>aller Zeiten</span></h1>
+    {{ podium(top3) }}
+    <p class="center small" style="margin-top:6px"><a class="link" href="/ranking">Zum kompletten Ranking →</a></p>
+    {% if not top3 %}<p class="center tiny muted" style="margin-top:6px">Das Podest füllt sich, sobald Staffeln bewertet werden.</p>{% endif %}
+  </section>
+
+  <div class="wrap page" style="padding-top:28px">
+    {% if resume %}
+    <section class="mb-lg">
+      <h2 class="mb">Weiter schauen</h2>
+      <div class="hscroll">
+        {% for c in resume %}<div class="hitem">{{ card(c) }}<a class="btn btn-sm" style="margin-top:6px;width:100%" href="{{ c.continue_href }}">▶ Weiter</a></div>{% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    {% if updated %}
+    <section class="mb-lg">
+      <div class="row between mb"><h2>Zuletzt aktualisiert</h2><a class="link small" href="/series">Alle Serien</a></div>
+      <div class="hscroll">
+        {% for c in updated %}<div class="hitem">{{ card(c, note=True) }}</div>{% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    {% if soon %}
+    <section class="mb-lg">
+      <div class="row between mb"><h2>Demnächst &amp; neu</h2><a class="link small" href="/calendar">Kalender</a></div>
+      <div class="stack">
+        {% for i in soon %}
+        <a class="rank-row" href="{{ i.href }}">
+          <img src="{{ i.cover }}" alt="" loading="lazy" referrerpolicy="no-referrer">
+          <span class="grow"><b>{{ i.title }}</b><br><small class="muted">Staffel {{ i.season }} · Folge {{ i.episode }} · {{ i.day }}</small></span>
+          <span class="rk-score">{% if i.available %}{% for l in i.langs %}<b class="lang-badge l-{{ l|lower }}">{{ LANGS[l].short }}</b>{% endfor %}{% else %}<small class="muted">angekündigt</small>{% endif %}</span>
+        </a>
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
+    {% if trending %}
+    <section class="mb-lg">
+      <div class="row between mb"><h2>Aktuell beliebt</h2><a class="link small" href="/ranking?tab=trending">Alle</a></div>
+      <div class="stack">{% for e in trending %}{{ rank_row(e, True) }}{% endfor %}</div>
+    </section>
+    {% endif %}
+
+    <section>
+      <div class="row between mb"><h2>Neu hinzugefügt</h2><a class="link small" href="/series">Alle Serien</a></div>
+      <div class="grid-posters">
+        {% for s in latest %}{{ card(s) }}{% endfor %}
+        {% if not latest %}<p class="muted small" style="grid-column:1/-1">Noch keine Serien veröffentlicht.{% if user and can.manage_content(user.role) %} <a class="link" href="/admin/series/new">Erste Serie anlegen</a>{% endif %}</p>{% endif %}
+      </div>
+    </section>
+  </div>
+</div>
+{% endblock %}

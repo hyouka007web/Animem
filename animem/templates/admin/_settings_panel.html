@@ -1,0 +1,7 @@
+<div class="panel stack" data-settings>
+  <div><label class="f" for="set-name">Seitenname</label>
+    <div class="row" style="flex-wrap:nowrap"><input class="input" id="set-name" data-setting="site_name" maxlength="60" value="{{ settings.site_name }}"><button class="btn btn-sm" data-save-name>Speichern</button></div></div>
+  <label class="switch"><span><b>Registrierung offen</b><br><span class="tiny muted">Wenn aus, können sich keine neuen Nutzer registrieren.</span></span><input type="checkbox" data-setting="registration_open" {{ 'checked' if settings.registration_open }}></label>
+  <label class="switch"><span><b>Wartungsmodus</b><br><span class="tiny muted">Nur Admins und Owner erreichen die Seite, alle anderen sehen eine Wartungsseite.</span></span><input type="checkbox" data-setting="maintenance_mode" {{ 'checked' if settings.maintenance_mode }}></label>
+  <p class="msg" data-msg></p>
+</div>

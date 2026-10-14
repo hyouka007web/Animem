@@ -1,0 +1,12 @@
+{% extends "owner/_layout.html" %}
+{% block title %}Owner · {{ site_name }}{% endblock %}
+{% block owner %}
+<p class="small" style="color:var(--accent)">Privat</p>
+<h1 style="font-size:1.9rem" class="mb">Owner Control Center</h1>
+<p class="muted small mb-lg" style="max-width:600px">Zentrale Systemebene für Datenbank, Sicherheit, Benutzer und Betrieb. Dieser Bereich ist nur für die konfigurierte Owner-Identität erreichbar.</p>
+<div class="grid-cards c3">{% for label, value in cards %}<div class="stat"><b>{{ value }}</b><span class="muted small">{{ label }}</span></div>{% endfor %}</div>
+<div class="grid-cards mt-lg" style="grid-template-columns:1fr">
+  <a class="panel-solid" href="/admin"><h2>Normaler Admin-Bereich</h2><p class="small muted">Serien, Filme, Forum, Tickets und Nutzer verwalten.</p></a>
+  <a class="panel-solid" href="/owner/database"><h2>Datenbank-Explorer</h2><p class="small muted">Tabellen und Datensätze (nur lesend, sensible Spalten ausgeblendet).</p></a>
+</div>
+{% endblock %}

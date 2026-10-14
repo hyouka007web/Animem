@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% from "_macros.html" import stars_widget, reviews, collection_box, card with context %}
+{% block title %}{{ series.title }} · {{ site_name }}{% endblock %}
+{% block content %}
+{% if series.banner_url %}<div class="hero-banner"><img src="{{ series.banner_url }}" alt="" referrerpolicy="no-referrer"></div>{% endif %}
+<div class="wrap-md page" style="padding-top:{{ '0' if series.banner_url else '28px' }}" data-series-page>
+  <div class="detail {{ 'up' if series.banner_url }}">
+    <div class="cover"><img id="season-cover" src="{{ current.cover if current else series.thumbnail_url }}" alt="{{ series.title }}" referrerpolicy="no-referrer"></div>
+    <div class="grow">
+      <h1 style="font-size:1.9rem">{{ series.title }}</h1>
+      {% if series.alt_titles %}<p class="tiny muted" style="margin-top:4px">Auch bekannt als: {{ series.alt_titles|join(' · ') }}</p>{% endif %}
+      <p class="muted-2 small" style="margin-top:6px" id="season-meta">
+        {% if current and current.ratings_count %}<span class="star">★</span> {{ '%.1f'|format(current.avg_rating) }} · {{ current.ratings_count }} Bewertungen{% if seasons|length > 1 %} (Staffel {{ current.number }}){% endif %}{% else %}Noch keine Bewertung{% endif %}
+      </p>
+      {% if user and progress_state != 'NOT_STARTED' %}
+      <p style="margin-top:8px"><span class="badge {{ 'green' if progress_state == 'COMPLETED' else '' }}">{{ 'Abgeschlossen' if progress_state == 'COMPLETED' else 'Du schaust gerade' }}</span></p>
+      {% endif %}
+      {% if series.description %}<p class="muted-2 small pre" style="margin-top:14px;max-width:640px">{{ series.description }}</p>{% endif %}
+      {% if series.year or status_label %}<div class="row" style="margin-top:10px;gap:6px">
+        {% if series.year %}<span class="chip">{{ series.year }}</span>{% endif %}{% if status_label %}<span class="chip">{{ status_label }}</span>{% endif %}</div>{% endif %}
+      {% if genres or tags %}
+      <div class="row" style="margin-top:12px;gap:6px">
+        {% for g in genres %}<a class="chip" href="/genres/{{ g.slug }}">{{ g.name }}</a>{% endfor %}
+        {% for t in tags %}<a class="chip" href="/tags/{{ t.slug }}">#{{ t.name }}</a>{% endfor %}
+      </div>{% endif %}
+      <div class="row" style="margin-top:16px">
+        {% if user %}
+          <button class="btn btn-ghost {{ 'on' if subscribed }}" data-toggle="/api/subscriptions" data-body='{"seriesId":"{{ series.id }}"}' data-on="{{ 1 if subscribed else 0 }}" data-label-on="Abonniert" data-label-off="Abonnieren">{{ 'Abonniert' if subscribed else 'Abonnieren' }}</button>
+          <button class="btn btn-ghost {{ 'on' if watchlist }}" data-toggle="/api/watchlist" data-body='{"seriesId":"{{ series.id }}"}' data-on="{{ 1 if watchlist else 0 }}" data-label-on="Auf der Watchlist" data-label-off="Zur Watchlist">{{ 'Auf der Watchlist' if watchlist else 'Zur Watchlist' }}</button>
+        {% else %}
+          <a class="link small" href="/login?next={{ request.path }}">Anmelden, um zu bewerten, zu abonnieren oder Listen zu nutzen</a>
+        {% endif %}
+      </div>
+      {% if user and sub %}
+      <details class="panel-solid" style="margin-top:12px;max-width:420px" data-sub-settings data-series="{{ series.id }}">
+        <summary style="cursor:pointer;font-weight:600">🔔 Benachrichtigungen für diese Serie</summary>
+        <div class="stack" style="margin-top:10px">
+          <label class="check-row small" style=""><input type="radio" name="submode" value="default" {{ 'checked' if sub.notify_on_new_episode and sub.notify_langs is none }}> Wie in meinem Profil ({% for l in lang_order if prefs and l in prefs.notify_langs %}{{ lang_map[l].short }}{{ ', ' if not loop.last }}{% endfor %})</label>
+          <label class="check-row small" style=""><input type="radio" name="submode" value="custom" {{ 'checked' if sub.notify_on_new_episode and sub.notify_langs is not none }}> Nur für diese Sprachen:</label>
+          <div class="row" style="gap:12px;padding-left:24px">{% for l in lang_order %}<label class="check-row small" style=""><input type="checkbox" data-sub-lang value="{{ l }}" {{ 'checked' if sub.notify_langs and l in sub.notify_langs }}> {{ lang_map[l].short }}</label>{% endfor %}</div>
+          <label class="check-row small" style=""><input type="radio" name="submode" value="mute" {{ 'checked' if not sub.notify_on_new_episode }}> Stumm – keine Meldungen zu dieser Serie</label>
+          <div class="row"><button type="button" class="btn btn-sm" data-save-sub>Speichern</button><span class="msg small" data-msg></span></div>
+        </div>
+      </details>
+      {% endif %}
+      {% if user %}<div style="margin-top:12px">{{ collection_box(collections, 'seriesId', series.id) }}</div>{% endif %}
+    </div>
+  </div>
+
+  {% if seasons %}
+  <nav class="season-tabs mt-lg" data-season-tabs aria-label="Staffeln">
+    {% for s in seasons %}
+    <a class="season-tab {{ 'active' if s.number == selected }}" href="?season={{ s.number }}" data-season="{{ s.number }}">
+      Staffel {{ s.number }}<small>{% if s.total and s.watched >= s.total %} ✓{% elif s.total %} {{ s.watched }}/{{ s.total }}{% endif %}</small>
+    </a>
+    {% endfor %}
+  </nav>
+  {% for s in seasons %}
+  <section class="season-panel" data-panel="{{ s.number }}" {{ 'hidden' if s.number != selected }}>
+    {% if s.title %}<h2 class="mb">{{ s.title }}</h2>{% endif %}
+    <div class="grid-cards c4">
+      {% for ep in s.episodes %}
+      <a class="ep" href="/series/{{ series.slug }}/s/{{ s.number }}/e/{{ ep.number }}">
+        <div class="thumb"><img src="{{ s.cover }}" alt="" loading="lazy" referrerpolicy="no-referrer"><span class="no">E{{ ep.number }}</span>{% if ep.id in watched %}<span class="seen" title="Gesehen">✓</span>{% endif %}</div>
+        <p class="t">{{ ep.number }}. {{ ep.title }}</p>
+      </a>
+      {% endfor %}
+      {% if not s.episodes %}<p class="muted small" style="grid-column:1/-1">Noch keine Folgen veröffentlicht.</p>{% endif %}
+    </div>
+    {% if s.announced %}<p class="small muted" style="margin-top:12px">📅 Demnächst: {% for a in s.announced[:6] %}Folge {{ a.number }} ({{ a.aired_at[:10]|date_de }}){{ ' · ' if not loop.last }}{% endfor %}</p>{% endif %}
+  </section>
+  {% endfor %}
+  {% else %}<p class="muted small mt-lg">Für diese Serie gibt es noch keine Staffeln.</p>{% endif %}
+
+  {% if current %}
+  {% if user %}<div class="mt-lg">{{ stars_widget('SEASON', current.id, my_current.get('value'), my_current.get('comment', ''), 'Staffel ' ~ current.number) }}</div>
+  {% else %}<p class="mt-lg small"><a class="link" href="/login?next={{ request.path }}">Anmelden</a>, um Staffeln zu bewerten.</p>{% endif %}
+  {{ reviews('SEASON', current.id) }}
+  {% endif %}
+  {% if similar %}
+  <section class="mt-lg">
+    <h2 class="mb">Ähnliche Serien</h2>
+    <div class="hscroll">{% for c in similar %}<div class="hitem">{{ card(c) }}</div>{% endfor %}</div>
+  </section>
+  {% endif %}
+  <script type="application/json" id="season-data">{{ season_data|tojson }}</script>
+</div>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% from "_macros.html" import player with context %}
+{% block title %}{{ series.title }} S{{ season.number }}E{{ ep.number }} · {{ site_name }}{% endblock %}
+{% block content %}
+<div class="wrap-md page">
+  <a class="muted small" href="{{ season_url }}">← {{ series.title }} · Staffel {{ season.number }}</a>
+  <h1 style="margin-top:8px;font-size:1.3rem">S{{ season.number }} · E{{ ep.number }} — {{ ep.title }}</h1>
+  <div class="mt">
+    {{ player(streams, ep.title, target_type, ep.id, pref_lang, lang_list, lang_map) }}
+    {% if user %}<span data-watch-tracker data-type="EPISODE" data-key="episodeId" data-id="{{ ep.id }}" hidden></span>{% endif %}
+  </div>
+  <div class="row between mt">{% if next_url %}<a class="btn" href="{{ next_url }}">Nächste Folge →</a>{% endif %}<a class="btn btn-ghost" href="{{ season_url }}">Staffel bewerten</a></div>
+  {% if ep.description %}<p class="muted-2 small pre mt">{{ ep.description }}</p>{% endif %}
+  <p class="tiny muted mt">{% if user %}Nach 3 Minuten wird die Folge automatisch als gesehen markiert.{% else %}<a class="link" href="/login?next={{ request.path }}">Anmelden</a>, damit dein Fortschritt automatisch gespeichert wird.{% endif %}</p>
+</div>
+{% endblock %}

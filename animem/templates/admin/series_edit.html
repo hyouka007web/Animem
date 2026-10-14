@@ -1,0 +1,43 @@
+{% extends "admin/_layout.html" %}
+{% block title %}{{ heading }} · Admin · {{ site_name }}{% endblock %}
+{% block admin %}
+<div class="row between mb-lg"><h1>{{ heading }}</h1><a class="muted small" href="/admin/series">← Zur Liste</a></div>
+<script type="application/json" id="editor-data">{{ data|tojson }}</script>
+<details class="panel-solid mb" data-import data-kind="series">
+  <summary style="cursor:pointer;font-weight:600">⬇ Metadaten importieren (AniList / Jikan)</summary>
+  <div class="stack" style="margin-top:12px">
+    <p class="small muted">Sucht den Titel online und übernimmt Titel, Beschreibung, Cover, Genres, Zweittitel, Jahr und alle Staffeln mit Folgenliste (Folgen ohne Stream gelten als „angekündigt“). Bestehende Felder werden überschrieben.</p>
+    <div class="row" style="flex-wrap:nowrap;gap:6px">
+      <select class="input" data-imp-provider style="width:auto"><option value="anilist">AniList</option><option value="jikan">Jikan (MAL)</option></select>
+      <input class="input" data-imp-q placeholder="Titel suchen …" maxlength="120">
+      <button type="button" class="btn btn-sm" data-imp-search>Suchen</button>
+    </div>
+    <label class="row small" style="gap:8px"><input type="checkbox" data-imp-titles checked> Folgentitel nachladen (langsamer, über Jikan)</label>
+    <p class="msg small" data-imp-msg></p>
+    <div class="stack" data-imp-results></div>
+  </div>
+</details>
+<form data-series-editor class="stack-lg" novalidate>
+  <section class="panel stack">
+    <div><label class="f" for="s-title">Titel *</label><input class="input" id="s-title" data-f="title" maxlength="200" required></div>
+    <div><label class="f" for="s-desc">Beschreibung</label><textarea class="input" id="s-desc" data-f="description" maxlength="5000"></textarea></div>
+    <div data-upload-field="thumb"><label class="f">Poster * (HTTPS-URL oder Upload)</label><input class="input" data-url data-f="thumbnailUrl"><input type="file" accept="image/png,image/jpeg,image/webp,image/gif" data-file class="small" style="margin-top:6px"></div>
+    <div data-upload-field="banner"><label class="f">Banner (optional)</label><input class="input" data-url data-f="bannerUrl"><input type="file" accept="image/png,image/jpeg,image/webp,image/gif" data-file class="small" style="margin-top:6px"></div>
+    <div><label class="f" for="s-alt">Weitere Titel (kommagetrennt – für die Suche)</label><input class="input" id="s-alt" data-f="altTitles" placeholder="Englischer Titel, Romaji, Abkürzung"></div>
+    <div class="grid-cards c3" style="grid-template-columns:1fr 1fr">
+      <div><label class="f" for="s-year">Jahr</label><input class="input" id="s-year" data-f="year" type="number" min="1900" max="2100" placeholder="2024"></div>
+      <div><label class="f" for="s-air">Erscheinungsstatus</label><select class="input" id="s-air" data-f="airStatus"><option value="">—</option><option value="AIRING">Läuft aktuell</option><option value="FINISHED">Abgeschlossen</option><option value="UPCOMING">Angekündigt</option><option value="HIATUS">Pausiert</option><option value="CANCELLED">Abgebrochen</option></select></div>
+    </div>
+    <div class="grid-cards c3" style="grid-template-columns:1fr">
+      <div><label class="f" for="s-status">Status</label><select class="input" id="s-status" data-f="status"><option value="DRAFT">Entwurf</option><option value="PUBLISHED">Veröffentlicht</option><option value="ARCHIVED">Archiviert</option></select></div>
+      <div><label class="f" for="s-genres">Genres (kommagetrennt)</label><input class="input" id="s-genres" data-f="genres" placeholder="Action, Fantasy"></div>
+      <div><label class="f" for="s-tags">Tags (kommagetrennt)</label><input class="input" id="s-tags" data-f="tags" placeholder="isekai, magie"></div>
+    </div>
+  </section>
+  <section>
+    <div class="row between mb"><h2>Staffeln &amp; Folgen</h2><button type="button" class="btn btn-ghost btn-sm" data-add-season>+ Staffel</button></div>
+    <div class="stack" data-seasons></div>
+  </section>
+  <div class="sticky-save row"><button class="btn" type="submit">Speichern</button><span class="msg" data-msg></span></div>
+</form>
+{% endblock %}

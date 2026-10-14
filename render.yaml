@@ -1,0 +1,25 @@
+services:
+  - type: web
+    name: animem
+    runtime: python
+    plan: starter            # Persistent Disk (für SQLite & Uploads) gibt es nicht im Free-Plan
+    buildCommand: pip install -r requirements.txt && python manage.py init-db
+    startCommand: gunicorn app:app --workers 2 --threads 4 --bind 0.0.0.0:$PORT
+    healthCheckPath: /api/health
+    disk:
+      name: animem-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.12.3"
+      - key: ANIMEM_DB_PATH
+        value: /var/data/animem.db
+      - key: ANIMEM_STORAGE_DIR
+        value: /var/data/uploads
+      - key: TRUST_PROXY
+        value: "1"
+      - key: OWNER_EMAIL
+        sync: false
+      - key: OWNER_USERNAME
+        sync: false

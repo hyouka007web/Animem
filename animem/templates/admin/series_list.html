@@ -1,0 +1,22 @@
+{% extends "admin/_layout.html" %}
+{% block title %}Serien · Admin · {{ site_name }}{% endblock %}
+{% block admin %}
+<div class="row between mb-lg"><h1>Serien verwalten</h1><a class="btn" href="/admin/series/new">+ Neue Serie</a></div>
+<div class="table-wrap"><table>
+  <thead><tr><th>Titel</th><th>Status</th><th>Staffeln</th><th>Folgen</th><th>Wertung</th><th></th></tr></thead>
+  <tbody>
+  {% for s in items %}
+  <tr>
+    <td><a class="link" href="/admin/series/{{ s.id }}/edit">{{ s.title }}</a></td>
+    <td><span class="badge {{ 'green' if s.status == 'PUBLISHED' else 'grey' }}">{{ {'DRAFT':'Entwurf','PUBLISHED':'Veröffentlicht','ARCHIVED':'Archiviert'}[s.status] }}</span></td>
+    <td>{{ s.season_count }}</td><td>{{ s.episode_count }}</td><td>{{ '%.1f'|format(s.avg_rating) }} ({{ s.ratings_count }})</td>
+    <td style="white-space:nowrap">
+      <a class="btn btn-ghost btn-sm" href="/admin/series/{{ s.id }}/edit">Bearbeiten</a>
+      {% if s.status == 'PUBLISHED' %}<a class="btn btn-ghost btn-sm" href="/series/{{ s.slug }}">Ansehen</a>{% endif %}
+      {% if can.manage_admins(user.role) %}<button class="btn btn-danger btn-sm" data-delete="/api/series/{{ s.id }}" data-confirm="Serie „{{ s.title }}“ samt Staffeln, Folgen und Bewertungen löschen?">Löschen</button>{% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+  {% if not items %}<tr><td colspan="6" class="muted center" style="padding:28px">Noch keine Serien angelegt.</td></tr>{% endif %}
+  </tbody></table></div>
+{% endblock %}

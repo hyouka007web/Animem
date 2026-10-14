@@ -1,0 +1,22 @@
+{% extends "admin/_layout.html" %}
+{% block title %}Filme · Admin · {{ site_name }}{% endblock %}
+{% block admin %}
+<div class="row between mb-lg"><h1>Filme verwalten</h1><a class="btn" href="/admin/movies/new">+ Neuer Film</a></div>
+<div class="table-wrap"><table>
+  <thead><tr><th>Titel</th><th>Status</th><th>Wertung</th><th></th></tr></thead>
+  <tbody>
+  {% for m in items %}
+  <tr>
+    <td><a class="link" href="/admin/movies/{{ m.id }}/edit">{{ m.title }}</a></td>
+    <td><span class="badge {{ 'green' if m.status == 'PUBLISHED' else 'grey' }}">{{ 'Veröffentlicht' if m.status == 'PUBLISHED' else 'Entwurf' }}</span></td>
+    <td>{{ '%.1f'|format(m.avg_rating) }} ({{ m.ratings_count }})</td>
+    <td style="white-space:nowrap">
+      <a class="btn btn-ghost btn-sm" href="/admin/movies/{{ m.id }}/edit">Bearbeiten</a>
+      {% if m.status == 'PUBLISHED' %}<a class="btn btn-ghost btn-sm" href="/movies/{{ m.slug }}">Ansehen</a>{% endif %}
+      {% if can.manage_admins(user.role) %}<button class="btn btn-danger btn-sm" data-delete="/api/movies/{{ m.id }}" data-confirm="Film „{{ m.title }}“ löschen?">Löschen</button>{% endif %}
+    </td>
+  </tr>
+  {% endfor %}
+  {% if not items %}<tr><td colspan="4" class="muted center" style="padding:28px">Noch keine Filme angelegt.</td></tr>{% endif %}
+  </tbody></table></div>
+{% endblock %}

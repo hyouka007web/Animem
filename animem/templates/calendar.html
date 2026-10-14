@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Erscheinungskalender · {{ site_name }}{% endblock %}
+{% block content %}
+<div class="wrap-md page">
+  <div class="row between mb"><h1>Erscheinungskalender</h1>
+    {% if user %}<a class="btn btn-ghost btn-sm {{ 'on' if mine }}" href="{{ '/calendar' if mine else '/calendar?mine=1' }}">{{ '✓ Nur meine Serien' if mine else 'Nur meine Serien' }}</a>{% endif %}</div>
+  <p class="muted small mb">Neue Folgen der nächsten Wochen. „Angekündigt“ heißt: Das Erscheinungsdatum steht fest, es gibt aber noch keinen Stream.{% if mine %} Gezeigt werden Serien aus deinen Abos und deiner Watchlist.{% endif %}</p>
+
+  {% macro day_block(d) %}
+  <section class="cal-day {{ 'today' if d.today }}">
+    <h2 class="cal-head">{{ d.label }}</h2>
+    <div class="stack">
+      {% for i in d['items'] %}
+      <a class="rank-row" href="{{ i.href }}">
+        <img src="{{ i.cover }}" alt="" loading="lazy" referrerpolicy="no-referrer">
+        <span class="grow"><b>{{ i.title }}</b><br><small class="muted">Staffel {{ i.season }} · Folge {{ i.episode }}{% if i.episode_title and not i.episode_title.startswith('Folge ') %} – {{ i.episode_title }}{% endif %}</small></span>
+        <span class="rk-score">{% if i.available %}{% for l in i.langs %}<b class="lang-badge l-{{ l|lower }}">{{ LANGS[l].short }}</b>{% endfor %}{% else %}<span class="badge grey">angekündigt</span>{% endif %}</span>
+      </a>
+      {% endfor %}
+    </div>
+  </section>
+  {% endmacro %}
+
+  <h2 class="mb">Demnächst</h2>
+  <div class="stack-lg">
+    {% for d in upcoming %}{{ day_block(d) }}{% endfor %}
+    {% if not upcoming %}<p class="muted small">In den nächsten Wochen sind keine Folgen eingetragen.</p>{% endif %}
+  </div>
+
+  {% if recent %}
+  <h2 class="mt-lg mb">Zuletzt erschienen</h2>
+  <div class="stack-lg">{% for d in recent %}{{ day_block(d) }}{% endfor %}</div>
+  {% endif %}
+</div>
+{% endblock %}

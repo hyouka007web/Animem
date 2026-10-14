@@ -1,0 +1,37 @@
+{% extends "admin/_layout.html" %}
+{% block title %}Forum · Admin · {{ site_name }}{% endblock %}
+{% block admin %}
+<h1 class="mb-lg">Forum</h1>
+<section class="panel-solid mb-lg">
+  <h2 class="mb">Kategorien</h2>
+  <div class="stack">
+    {% for c in categories %}
+    <div class="list-item"><div><b>{{ c.name }}</b> <span class="tiny muted">/{{ c.slug }}</span><p class="tiny muted">{{ c.description }}</p></div>
+      {% if can.manage_admins(user.role) %}<button class="btn btn-danger btn-sm" data-delete="/api/admin/forum/categories/{{ c.id }}" data-confirm="Kategorie „{{ c.name }}“ inklusive aller Themen löschen?">Löschen</button>{% endif %}</div>
+    {% endfor %}
+  </div>
+  <div class="stack mt" data-new-category>
+    <input class="input" data-name maxlength="60" placeholder="Neue Kategorie">
+    <input class="input" data-desc maxlength="300" placeholder="Kurzbeschreibung (optional)">
+    <div class="row"><button class="btn btn-sm" data-submit>Kategorie anlegen</button><span class="msg" data-msg></span></div>
+  </div>
+</section>
+<h2 class="mb">Themen moderieren</h2>
+<div class="table-wrap"><table>
+  <thead><tr><th>Titel</th><th>Kategorie</th><th>Autor</th><th>Status</th><th></th></tr></thead>
+  <tbody>
+  {% for t in threads %}
+  <tr>
+    <td><a class="link" href="/forum/{{ t.category_slug }}/{{ t.id }}">{{ t.title }}</a></td>
+    <td>{{ t.category_name }}</td><td>{{ t.user.username if t.user else '—' }}</td>
+    <td>{% if t.is_pinned %}<span class="badge">angepinnt</span> {% endif %}{% if t.is_locked %}<span class="badge red">gesperrt</span>{% endif %}</td>
+    <td style="white-space:nowrap">
+      <button class="btn btn-ghost btn-sm" data-moderate="{{ t.id }}" data-field="isPinned" data-value="{{ 'false' if t.is_pinned else 'true' }}">{{ 'Lösen' if t.is_pinned else 'Anpinnen' }}</button>
+      <button class="btn btn-ghost btn-sm" data-moderate="{{ t.id }}" data-field="isLocked" data-value="{{ 'false' if t.is_locked else 'true' }}">{{ 'Entsperren' if t.is_locked else 'Sperren' }}</button>
+      <button class="btn btn-danger btn-sm" data-delete="/api/admin/forum/threads/{{ t.id }}" data-confirm="Thema „{{ t.title }}“ samt Beiträgen löschen?">Löschen</button>
+    </td>
+  </tr>
+  {% endfor %}
+  {% if not threads %}<tr><td colspan="5" class="muted center" style="padding:28px">Noch keine Themen.</td></tr>{% endif %}
+  </tbody></table></div>
+{% endblock %}

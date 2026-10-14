@@ -1,0 +1,13 @@
+{% extends "admin/_layout.html" %}
+{% block title %}Tickets · Admin · {{ site_name }}{% endblock %}
+{% block admin %}
+<h1 class="mb-lg">Support-Tickets</h1>
+<div class="table-wrap"><table>
+  <thead><tr><th>Betreff</th><th>Nutzer</th><th>Priorität</th><th>Status</th><th>Aktualisiert</th></tr></thead>
+  <tbody>
+  {% for t in items %}
+  <tr><td><a class="link" href="/support/{{ t.id }}">{{ t.subject }}</a></td><td>{{ t.user.username if t.user else '—' }}</td><td>{{ t.priority }}</td><td>{{ labels[t.status] }}</td><td class="muted">{{ t.updated|datetime_de }}</td></tr>
+  {% endfor %}
+  {% if not items %}<tr><td colspan="5" class="muted center" style="padding:28px">Keine Tickets.</td></tr>{% endif %}
+  </tbody></table></div>
+{% endblock %}

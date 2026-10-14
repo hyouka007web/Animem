@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Benachrichtigungen · {{ site_name }}{% endblock %}
+{% block content %}
+<div class="wrap-sm page">
+  <div class="row between mb"><h1>Benachrichtigungen</h1>
+    <div class="row" style="gap:6px">
+      <button class="btn btn-ghost btn-sm" data-notif-read-all {{ 'disabled' if not unread }}>Alle gelesen</button>
+      <button class="btn btn-ghost btn-sm" data-notif-clear>Gelesene löschen</button>
+    </div></div>
+  <p class="muted small mb">Meldungen zu neuen Folgen, Staffeln und Sprachen deiner abonnierten Serien. Welche Sprachen dich interessieren, stellst du in deinem <a class="link" href="/profile#benachrichtigungen">Profil</a> ein – für einzelne Serien auf der jeweiligen Serienseite.</p>
+  <div class="stack" data-notif-list>
+    {% for n in items %}
+    <a class="list-item notif {{ 'unread' if not n.is_read }}" href="/notifications/go/{{ n.id }}">
+      <span class="notif-ico" aria-hidden="true">{{ {'NEW_SEASON': '🆕', 'NEW_EPISODE': '▶', 'NEW_LANGUAGE': '🗣'}.get(n.type, '🔔') }}</span>
+      <span class="grow"><span class="small">{{ n.message }}</span><br><span class="tiny muted">{{ n.created|datetime_de }}</span></span>
+      {% if not n.is_read %}<span class="dot" title="Ungelesen"></span>{% endif %}
+    </a>
+    {% endfor %}
+    {% if not items %}<p class="muted small center" style="padding:28px 0">Noch keine Benachrichtigungen. Abonniere Serien, um bei neuen Folgen informiert zu werden.</p>{% endif %}
+  </div>
+</div>
+{% endblock %}

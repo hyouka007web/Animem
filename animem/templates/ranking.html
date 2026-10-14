@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% from "_macros.html" import rank_row with context %}
+{% block title %}Ranking · {{ site_name }}{% endblock %}
+{% block content %}
+<div class="wrap-md page">
+  <h1 class="mb">Ranking</h1>
+  <p class="muted small mb">Jede Staffel tritt einzeln an – ist Staffel 2 besser bewertet als Staffel 1, steht sie weiter oben.</p>
+  <nav class="tabs" aria-label="Ranking">
+    <a class="tab {{ 'active' if tab == 'alltime' }}" href="/ranking?tab=alltime">Aller Zeiten</a>
+    <a class="tab {{ 'active' if tab == 'trending' }}" href="/ranking?tab=trending">Aktuell beliebt</a>
+  </nav>
+  <div class="stack">
+    {% for e in items %}{{ rank_row(e, tab == 'trending') }}{% endfor %}
+    {% if not items %}<p class="muted small center" style="padding:28px 0">{{ 'Noch keine Staffel bewertet – sei der Erste!' if tab == 'alltime' else 'In den letzten ' ~ days ~ ' Tagen gab es noch keine Aktivität.' }}</p>{% endif %}
+  </div>
+  <details class="panel-solid mt-lg">
+    <summary style="cursor:pointer;font-weight:600">So wird gerankt</summary>
+    <div class="small muted-2 stack" style="margin-top:10px">
+      {% if tab == 'alltime' %}
+      <p><b>Aller Zeiten:</b> Grundlage ist der Durchschnitt aller Bewertungen (1–10) einer Staffel. Damit eine einzelne 10er-Stimme nicht automatisch auf Platz 1 landet, wird der Durchschnitt mit der Stimmenzahl gewichtet: Staffeln mit weniger als {{ min_votes }} Stimmen werden Richtung Gesamtdurchschnitt gezogen, mit vielen Stimmen zählt ihr echter Durchschnitt.</p>
+      {% else %}
+      <p><b>Aktuell beliebt:</b> Zählt die letzten {{ days }} Tage. Jede neue Bewertung bringt 3 Punkte, jede als gesehen markierte Folge 1 Punkt. Bei Gleichstand entscheidet die Gesamtwertung.</p>
+      {% endif %}
+      <p>Bewertet wird pro Staffel – dieselbe Serie kann deshalb mehrfach im Ranking stehen.</p>
+    </div>
+  </details>
+</div>
+{% endblock %}

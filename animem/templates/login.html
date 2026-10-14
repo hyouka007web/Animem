@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+{% from "_macros.html" import logo with context %}
+{% block title %}Anmelden · {{ site_name }}{% endblock %}
+{% block shell %}
+<main id="main" class="auth"><div class="auth-card">
+  <a href="/" style="display:inline-block;margin-bottom:18px">{{ logo(site_name) }}</a>
+  {% if step == 'totp' %}
+  <h1 style="font-size:1.3rem;margin-bottom:8px">Bestätigungscode</h1>
+  <p class="muted small mb">Gib den 6-stelligen Code aus deiner Authenticator-App ein – oder einen Wiederherstellungscode.</p>
+  <form method="post" action="/api/auth/totp" data-auth-form="totp" novalidate>
+    <input type="hidden" name="next" value="{{ next }}">
+    <div class="field"><label class="f" for="code">Code</label>
+      <input class="input" id="code" name="code" inputmode="numeric" autocomplete="one-time-code" autofocus required style="text-align:center;font-size:1.2rem;letter-spacing:.2em"></div>
+    <p class="msg err" aria-live="polite" data-msg>{{ error or '' }}</p>
+    <button class="btn" style="width:100%" type="submit">Bestätigen</button>
+    <a class="muted tiny center" href="/login" style="display:block;margin-top:14px">Zurück zur Anmeldung</a>
+  </form>
+  {% else %}
+  <h1 style="font-size:1.3rem;margin-bottom:18px">Bei {{ site_name }} anmelden</h1>
+  <form method="post" action="/api/auth/login" data-auth-form="login" novalidate>
+    <input type="hidden" name="next" value="{{ next }}">
+    <div class="field"><label class="f" for="email">E-Mail</label><input class="input" id="email" name="email" type="email" autocomplete="email" required autofocus></div>
+    <div class="field"><label class="f" for="password">Passwort</label><input class="input" id="password" name="password" type="password" autocomplete="current-password" required></div>
+    <p class="msg err" aria-live="polite" data-msg>{{ error or '' }}</p>
+    <button class="btn" style="width:100%" type="submit">Anmelden</button>
+  </form>
+  <p class="tiny muted center" style="margin-top:16px">Noch kein Konto? <a class="link" href="/register">Jetzt registrieren</a></p>
+  {% endif %}
+</div></main>
+{% endblock %}

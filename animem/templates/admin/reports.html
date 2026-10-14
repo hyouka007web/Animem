@@ -1,0 +1,66 @@
+{% extends "admin/_layout.html" %}
+{% block title %}Stream-Meldungen · Admin · {{ site_name }}{% endblock %}
+{% block admin %}
+<h1 class="mb">Stream-Meldungen &amp; Link-Check</h1>
+
+<section class="panel-solid mb-lg" data-linkcheck>
+  <div class="row between">
+    <div>
+      <h2>Automatischer Link-Check</h2>
+      <p class="small muted" data-lc-text>
+        {% if state.running %}Läuft … {{ state.done or 0 }}/{{ state.total or 0 }} geprüft.
+        {% elif state.finished %}Zuletzt: {{ state.finished|datetime_de }} · {{ state.total or 0 }} Links geprüft, {{ state.dead or 0 }} tot.
+        {% else %}Noch nie gelaufen.{% endif %}
+      </p>
+      <p class="tiny muted">Läuft automatisch alle 24 Stunden (einstellbar mit <code>LINKCHECK_INTERVAL_HOURS</code>). Ein Link gilt nach 2 Fehlschlägen in Folge als tot.</p>
+    </div>
+    <button class="btn" data-lc-start {{ 'disabled' if state.running }}>Alle Links jetzt prüfen</button>
+  </div>
+</section>
+
+<nav class="tabs" aria-label="Status">
+  <a class="tab {{ 'active' if status == 'OPEN' }}" href="/admin/reports?status=OPEN">Offen{% if open_count %} ({{ open_count }}){% endif %}</a>
+  <a class="tab {{ 'active' if status == 'FIXED' }}" href="/admin/reports?status=FIXED">Behoben</a>
+  <a class="tab {{ 'active' if status == 'IGNORED' }}" href="/admin/reports?status=IGNORED">Ignoriert</a>
+</nav>
+
+<div class="stack mb-lg">
+  {% for r in items %}
+  <div class="panel-solid report" data-report="{{ r.id }}">
+    <div class="row between" style="align-items:flex-start">
+      <div class="grow">
+        <p><b>{{ r.title }}</b> <span class="muted small">· {{ r.where }}</span></p>
+        <p class="small"><span class="badge {{ 'red' if r.count >= 3 else '' }}">{{ r.count }}× gemeldet</span>
+          <b class="lang-badge l-{{ r.lang|lower }}">{{ LANGS[r.lang].short if r.lang in LANGS else '?' }}</b> {{ r.label }}
+          {% if r.check %}<span class="badge {{ 'red' if r.check.status == 'DEAD' else ('green' if r.check.status == 'OK' else 'grey') }}" title="{{ r.check.note }}">Check: {{ r.check.status }}</span>{% endif %}</p>
+        <p class="tiny muted code" style="margin-top:6px">{{ r.url }}</p>
+        <p class="tiny muted">Zuletzt gemeldet {{ r.updated|datetime_de }}{% if r.note %} · {{ r.note }}{% endif %}</p>
+      </div>
+    </div>
+    <div class="row" style="margin-top:10px;gap:6px">
+      <a class="btn btn-ghost btn-sm" href="{{ r.url }}" target="_blank" rel="noopener noreferrer nofollow">Link öffnen</a>
+      <button class="btn btn-ghost btn-sm" data-check-url="{{ r.url }}">Jetzt prüfen</button>
+      <a class="btn btn-ghost btn-sm" href="{{ r.edit }}">Bearbeiten</a>
+      {% if status == 'OPEN' %}
+        <button class="btn btn-sm" data-report-action="resolve">Erledigt</button>
+        <button class="btn btn-ghost btn-sm" data-report-action="ignore">Ignorieren</button>
+        <button class="btn btn-danger btn-sm" data-report-action="remove_stream" data-confirm="Diesen Stream aus {{ r.title }} entfernen?">Stream entfernen</button>
+      {% else %}
+        <button class="btn btn-ghost btn-sm" data-report-action="reopen">Wieder öffnen</button>
+      {% endif %}
+    </div>
+    <p class="msg small" data-msg></p>
+  </div>
+  {% endfor %}
+  {% if not items %}<p class="muted small center" style="padding:24px 0">{{ 'Keine offenen Meldungen – alles läuft. 🎉' if status == 'OPEN' else 'Nichts in dieser Liste.' }}</p>{% endif %}
+</div>
+
+<h2 class="mb">Als tot erkannte Links ({{ dead|length }})</h2>
+<div class="stack">
+  {% for c in dead %}
+  <div class="list-item"><div class="grow"><p class="tiny code" style="padding:4px 8px">{{ c.url }}</p><p class="tiny muted">{{ c.note or 'Nicht erreichbar' }} · {{ c.fail_count }} Fehlschläge · zuletzt geprüft {{ c.checked_at|datetime_de }}</p></div>
+    <button class="btn btn-ghost btn-sm" data-check-url="{{ c.url }}">Neu prüfen</button></div>
+  {% endfor %}
+  {% if not dead %}<p class="muted small">Keine toten Links bekannt.</p>{% endif %}
+</div>
+{% endblock %}

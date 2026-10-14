@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block content %}
+<div class="wrap page">
+  <div class="admin">
+    <nav class="sidenav" aria-label="Verwaltung">
+      {% for n in nav %}<a href="{{ n.href }}" class="{{ 'active' if (nav_current == n.href or (n.href != '/admin' and nav_current.startswith(n.href))) }}">{{ n.label }}</a>{% endfor %}
+    </nav>
+    <div>{% block admin %}{% endblock %}</div>
+  </div>
+</div>
+{% endblock %}

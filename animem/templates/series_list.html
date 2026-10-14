@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+{% from "_macros.html" import card, empty with context %}
+{% block title %}Serien · {{ site_name }}{% endblock %}
+{% macro page_url(n) %}{{ url_for('pages.series_list', q=params.q or None, genre=params.genre or None, year=params.year or None, lang=params.lang or None, status=params.status or None, sort=params.sort or None, page=n if n > 1 else None) }}{% endmacro %}
+{% block content %}
+<div class="backdrop"><div class="wrap page">
+  <div class="row between mb"><h1>Serien</h1><div class="row" style="gap:6px"><a class="btn btn-ghost btn-sm" href="/calendar">📅 Kalender</a><a class="btn btn-ghost btn-sm" href="/ranking">🏆 Ranking</a></div></div>
+
+  <form method="get" action="/series" class="filters mb" data-filters>
+    <input class="input" type="search" name="q" value="{{ params.q }}" placeholder="Suchen – auch nach Zweittiteln …" aria-label="Suchen">
+    <details class="panel-solid" style="margin-top:10px" {{ 'open' if active }}>
+      <summary style="cursor:pointer;font-weight:600">Filter &amp; Sortierung{% if active %} <span class="badge">{{ active }} aktiv</span>{% endif %}</summary>
+      <div class="filter-grid">
+        <div><label class="f" for="f-genre">Genre</label>
+          <select class="input" id="f-genre" name="genre"><option value="">Alle</option>{% for g in facets.genres %}<option value="{{ g.slug }}" {{ 'selected' if params.genre == g.slug }}>{{ g.name }}</option>{% endfor %}</select></div>
+        <div><label class="f" for="f-year">Jahr</label>
+          <select class="input" id="f-year" name="year"><option value="">Alle</option>{% for y in facets.years %}<option value="{{ y }}" {{ 'selected' if params.year == y|string }}>{{ y }}</option>{% endfor %}</select></div>
+        <div><label class="f" for="f-lang">Sprache</label>
+          <select class="input" id="f-lang" name="lang"><option value="">Alle</option>{% for l in lang_order %}<option value="{{ l }}" {{ 'selected' if params.lang == l }}>{{ lang_map[l].name }}</option>{% endfor %}</select></div>
+        <div><label class="f" for="f-status">Status</label>
+          <select class="input" id="f-status" name="status"><option value="">Alle</option>{% for k, label in facets.statuses %}<option value="{{ k }}" {{ 'selected' if params.status == k }}>{{ label }}</option>{% endfor %}</select></div>
+        <div><label class="f" for="f-sort">Sortierung</label>
+          <select class="input" id="f-sort" name="sort">{% for k, label in sorts %}<option value="{{ k }}" {{ 'selected' if (params.sort or 'updated') == k }}>{{ label }}</option>{% endfor %}</select></div>
+      </div>
+      <div class="row" style="margin-top:12px"><button class="btn btn-sm" type="submit">Anwenden</button><a class="link small" href="/series">Zurücksetzen</a></div>
+    </details>
+  </form>
+
+  <p class="muted small mb">{{ total }} {{ 'Serie' if total == 1 else 'Serien' }}{% if params.q %} für „{{ params.q }}“{% endif %}</p>
+  <div class="grid-posters">
+    {% for s in items %}{{ card(s, note=True) }}{% endfor %}
+    {% if not items %}{{ empty('Keine Serien gefunden. Probiere weniger Filter oder einen anderen Suchbegriff.') }}{% endif %}
+  </div>
+  {% if pages > 1 %}
+  <nav class="row between mt-lg" aria-label="Seiten">
+    {% if page > 1 %}<a class="btn btn-ghost btn-sm" href="{{ page_url(page - 1) }}">← Zurück</a>{% else %}<span></span>{% endif %}
+    <span class="small muted">Seite {{ page }} von {{ pages }}</span>
+    {% if page < pages %}<a class="btn btn-ghost btn-sm" href="{{ page_url(page + 1) }}">Weiter →</a>{% else %}<span></span>{% endif %}
+  </nav>
+  {% endif %}
+</div></div>
+{% endblock %}

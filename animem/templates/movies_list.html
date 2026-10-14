@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% from "_macros.html" import card, empty with context %}
+{% block title %}Filme · {{ site_name }}{% endblock %}
+{% block content %}
+<div class="backdrop"><div class="wrap page">
+  <div class="row between mb-lg"><h1>Filme</h1></div>
+  <div class="grid-posters">
+    {% for s in items %}{{ card(s) }}{% endfor %}
+    {% if not items %}{{ empty('Noch keine Filme veröffentlicht.') }}{% endif %}
+  </div>
+</div></div>
+{% endblock %}

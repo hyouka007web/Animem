@@ -1,0 +1,13 @@
+{% extends "owner/_layout.html" %}
+{% block title %}System · Owner · {{ site_name }}{% endblock %}
+{% block owner %}
+<h1 class="mb">System & Einstellungen</h1>
+<p class="muted small mb-lg">Systeminformationen und persistente Anwendungseinstellungen.</p>
+<div class="grid-cards mb-lg" style="grid-template-columns:1fr">
+  <div class="panel-solid"><h2>Owner-Schutz</h2><p class="small muted" style="margin-top:6px">Aktiver Owner: <b class="muted-2">{{ user.username }}</b></p><p class="small muted">Konfigurierte Identität: {{ info.owner_identity }}</p></div>
+  <div class="panel-solid"><h2>System</h2>
+    <p class="small muted" style="margin-top:6px">SQLite {{ info.sqlite }} · Python {{ info.python }} · Flask {{ info.flask }}</p>
+    <p class="small muted">Datenbank: {{ (info.db_size / 1024 / 1024)|round(2) }} MB · Uploads: {{ (info.upload_size / 1024 / 1024)|round(2) }} MB · Latenz: {{ info.latency }} ms</p></div>
+</div>
+{% include "admin/_settings_panel.html" %}
+{% endblock %}
