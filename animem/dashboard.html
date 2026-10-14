@@ -1,9 +1,0 @@
-{% extends "admin/_layout.html" %}
-{% block title %}Übersicht · Admin · {{ site_name }}{% endblock %}
-{% block admin %}
-<h1 class="mb-lg">Übersicht</h1>
-<div class="grid-cards c4">
-  {% for label, value in stats %}<div class="stat"><b>{{ value }}</b><span class="muted small">{{ label }}</span></div>{% endfor %}
-</div>
-<div class="row mt-lg"><a class="btn" href="/admin/series/new">Neue Serie</a><a class="btn btn-ghost" href="/admin/movies/new">Neuer Film</a></div>
-{% endblock %}
